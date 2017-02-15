@@ -10,6 +10,35 @@ from curses import wrapper
 # curses.start_color()
 # curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
 
+def piece_constructor(input_char):
+    def __constructor(content, name, owner, sides_to_capture=None):
+        return { #TODO: make this more pythonic
+            "content": content,
+            "name": name,
+            "owner": owner,
+            "sides_to_capture": sides_to_capture
+        }
+    if input_char == 0:
+        return __constructor(0, 'empty', None)
+    elif input_char == 1:
+        return __constructor(1, 'attacker', 0, 2)
+    elif input_char == 2:
+        return __constructor(2, 'defender', 1, 2)
+    elif input_char == 3:
+        return __constructor(3, 'king', 1, 4)
+    elif input_char == 4:
+        return __constructor(4, 'throne', None)
+    elif input_char == 5:
+        return __constructor(5, 'throned_king', 1, 4)
+    else:
+        raise Exception('bad char input')
+
+def board_constructor(board_layout, board_size):
+    return {
+        "board_size": board_size,
+        "board_layout": map(piece_constructor, board_layout)
+    }
+
 def main(stdscr):
 
     # clear screen
@@ -33,7 +62,7 @@ def main(stdscr):
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              4, 0, 0, 1, 1, 1, 0, 0, 4]
-    game_state = {"active_player": 0, "board": copy.copy(board)}
+    game_state = {"active_player": 0, "board": board_constructor(board)}
     highlighted_squares = []
 
     def get_moves_in_range(board, start, end, step):
@@ -138,7 +167,7 @@ def main(stdscr):
             and game_state["board"][move_end] - 1 != game_state["board"][move_start] \
             and ((move_end - 1) % board_size == 0 \
                 or game_state["board"][move_end - 2] == moving_piece):
-                    stdscr.addstr(10,0,'capture found!')
+                    stdscr.addstr(10,0,'left capture found!')
                     new_game_state["board"][move_end - 1] = 0
         # check to the right
         if (move_end + 1) % board_size != 0 \
@@ -146,7 +175,7 @@ def main(stdscr):
             and game_state["board"][move_end] + 1 != game_state["board"][move_start]\
             and ((move_end + 1) % board_size == 0 \
                 or game_state["board"][move_end + 2] == moving_piece) :
-                    stdscr.addstr(10,0,'capture found!')
+                    stdscr.addstr(10,0,'right capture found!')
                     new_game_state["board"][move_end + 1] = 0
         # check a row above
         if move_end - board_size >= 0 \
@@ -154,7 +183,7 @@ def main(stdscr):
             and game_state["board"][move_end] - board_size != game_state["board"][move_start] \
             and (move_end - board_size * 2 < 0 \
                 or game_state["board"][move_end - board_size * 2] == moving_piece):
-                    stdscr.addstr(10,0,'capture found!')
+                    stdscr.addstr(10,0,'above capture found!')
                     new_game_state["board"][move_end - board_size] = 0
         # check a row below
         if move_end + board_size < board_size * board_size \
@@ -162,7 +191,7 @@ def main(stdscr):
             and game_state["board"][move_end] + board_size != game_state["board"][move_start] \
             and (move_end + board_size * 2 >= board_size * board_size \
                 or game_state["board"][move_end + board_size * 2] == moving_piece):
-                    stdscr.addstr(10,0,'capture found!')
+                    stdscr.addstr(10,0,'below capture found!')
                     new_game_state["board"][move_end + board_size] = 0
         # return new game_state
         return new_game_state
