@@ -22,6 +22,7 @@ def main(stdscr):
 
     # 0 = empty, 1 = attacker, 2 = defender, 3 = king
     # 4 = unoccupied throne, 5 = king on throne
+    # active_player = 0
     board = [4, 0, 0, 1, 1, 1, 0, 0, 4,
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
@@ -31,7 +32,7 @@ def main(stdscr):
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              4, 0, 0, 1, 1, 1, 0, 0, 4]
-
+    game_state = {"active_player": 0, "board": board}
     highlighted_squares = []
 
     def get_moves_in_range(board, start, end, step):
@@ -46,13 +47,13 @@ def main(stdscr):
         return found_moves
 
     def get_moves_for_piece(coord):
-        size = int(math.sqrt(len(board)))  # TODO: store this?
+        size = board_size # unnecessary
         legal_moves = []
         # print(range(coord, math.ceil(coord / size) * size))
         # Check row looking to the right if we're not in the last column
         if (coord + 1) % size != 0:
             legal_moves.extend(get_moves_in_range(
-                board,
+                game_state["board"],
                 coord + 1,
                 math.ceil(coord / size) * size if coord % size != 0
                 else coord + size,
@@ -61,23 +62,23 @@ def main(stdscr):
         # Check row looking to the left if we're not in the first column
         if coord % size != 0:
             legal_moves.extend(get_moves_in_range(
-                board,
+                game_state["board"],
                 coord - 1,
                 math.floor(coord / size) * size - 1,
                 -1))
 
         if coord - size >= 0:
             legal_moves.extend(get_moves_in_range(
-                board,
+                game_state["board"],
                 coord - size,
                 -1,
                 -size))
 
         if coord + size <= len(board):
             legal_moves.extend(get_moves_in_range(
-                board,
+                game_state["board"],
                 coord + size,
-                len(board),
+                board_size * board_size,
                 size))
 
         return legal_moves
@@ -99,12 +100,12 @@ def main(stdscr):
             else:
                 raise Exception('bad character')
 
-        for i in range(len(board)):
+        for i in range(board_size * board_size):
             attr = []
             if i in highlighted_squares:
                 attr.append(curses.color_pair(1))
                 stdscr.addstr(11, 0, 'found a thing')
-            stdscr.addstr(math.floor(i / board_size), i % board_size, char_converter(board[i]), *attr)
+            stdscr.addstr(math.floor(i / board_size), i % board_size, char_converter(game_state["board"][i]), *attr)
 
     def move_cursor(direction):
         if direction == 1:
@@ -122,12 +123,15 @@ def main(stdscr):
     def yx_to_point(y, x):
         return y * board_size + x
 
+    def complete_move(game_state, move_start, move_end):
+        pass
+        # check to see if enemy pieces need removed, remove them
+        # advance player
+
     # Set the board up
 
     print_board()
     cursor_loc = (math.floor(board_size / 2), math.floor(board_size / 2))
-
-    # cursor_loc = stdscr.getyx()
 
     active_square = None
     active_player = None
@@ -153,10 +157,13 @@ def main(stdscr):
         elif c == curses.KEY_LEFT:
             stdscr.move(stdscr.getyx()[0], max(0, stdscr.getyx()[1] - 1))
 
+        ####
+        # Space to select
+        ####
         if c == ord(' '):
             selected_square = yx_to_point(*stdscr.getyx())
             if active_square == None: #think this is valid...
-                if board[selected_square] != (0 and 4):
+                if game_state["board"][selected_square] != (0 and 4):
                     active_square = yx_to_point(*stdscr.getyx())
                     highlighted_squares = get_moves_for_piece(active_square)
             elif yx_to_point(*stdscr.getyx()) in highlighted_squares:
@@ -167,7 +174,6 @@ def main(stdscr):
             else:
                 highlighted_squares = []
                 active_square = None
-
 
         cursor_loc = stdscr.getyx()
 
