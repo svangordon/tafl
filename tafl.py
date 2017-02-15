@@ -33,11 +33,12 @@ def piece_constructor(input_char):
     else:
         raise Exception('bad char input')
 
-def board_constructor(board_layout, board_size):
-    return {
-        "board_size": board_size,
-        "board_layout": map(piece_constructor, board_layout)
-    }
+def board_constructor(board_layout, board_size=9):
+    return list(map(piece_constructor, board_layout))
+    # return {
+    #     "board_size": board_size,
+    #     "board_layout": map(piece_constructor, board_layout)
+    # }
 
 def main(stdscr):
 
@@ -68,9 +69,9 @@ def main(stdscr):
     def get_moves_in_range(board, start, end, step):
         found_moves = []
         for i in range(start, end, step):
-            if board[i] == 0:
+            if board[i]["content"] == 0:
                 found_moves.append(i)
-            elif board[i] == 4:
+            elif board[i]["content"] == 4:
                 continue
             else:
                 break
@@ -115,6 +116,7 @@ def main(stdscr):
 
     def print_board():
         def char_converter(char):
+            char = char["content"] #TODO: char converter can be moved to piece_constructor
             if char == 0:
                 return "."
             elif char == 1:
@@ -154,45 +156,73 @@ def main(stdscr):
         return y * board_size + x
 
     def complete_move(game_state, move_start, move_end):
+        def check_capture(moving_piece, adjacent_square, bounding_square):
+            # TODO: add support for kings, thrones
+            if adjacent_square == None:
+                return false
+            elif adjacent_square["content"] in [1, 2]:
+                return adjacent_square["owner"] not in [None, moving_piece["owner"]] \
+                    and bounding_square != None \
+                    and (bounding_square["owner"] == moving_piece["owner"])
         # check to see if enemy pieces need removed, remove them
         # check square to left
         moving_piece = game_state["board"][move_start]
         new_game_state = copy.deepcopy(game_state)
-        new_game_state["board"][move_start] = 0
+        new_game_state["board"][move_start] = piece_constructor(0)
         new_game_state["board"][move_end] = moving_piece
         new_game_state["active_player"] = (new_game_state["active_player"] + 1) % 2
         # check to the left
-        if move_end % board_size != 0 \
-            and game_state["board"][move_end] - 1 not in [0, 4] \
-            and game_state["board"][move_end] - 1 != game_state["board"][move_start] \
-            and ((move_end - 1) % board_size == 0 \
-                or game_state["board"][move_end - 2] == moving_piece):
-                    stdscr.addstr(10,0,'left capture found!')
-                    new_game_state["board"][move_end - 1] = 0
+        adjacent_square = game_state["board"][move_end - 1] if move_end % board_size != 0 else None
+        bounding_square = game_state["board"][move_end - 2] if (move_end - 1) % board_size != 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            stdscr.addstr(10,0,'left capture found!')
+            new_game_state["board"][move_end - 1] = piece_constructor(0)
+        # if move_end % board_size != 0 \
+        #     and game_state["board"][move_end][content] not in [0, 4] \
+        #     and game_state["board"][move_end]  != game_state["board"][move_start] \
+        #     and ((move_end - 1) % board_size == 0 \
+        #         or game_state["board"][move_end - 2] == moving_piece):
+        #             stdscr.addstr(10,0,'left capture found!')
+        #             new_game_state["board"][move_end - 1] = 0
         # check to the right
-        if (move_end + 1) % board_size != 0 \
-            and game_state["board"][move_end] + 1 not in [0, 4] \
-            and game_state["board"][move_end] + 1 != game_state["board"][move_start]\
-            and ((move_end + 1) % board_size == 0 \
-                or game_state["board"][move_end + 2] == moving_piece) :
-                    stdscr.addstr(10,0,'right capture found!')
-                    new_game_state["board"][move_end + 1] = 0
+        adjacent_square = game_state["board"][move_end + 1] if (move_end + 1) % board_size != 0 else None
+        bounding_square = game_state["board"][move_end + 2] if (move_end + 2) % board_size != 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            stdscr.addstr(10,0,'right capture found!')
+            new_game_state["board"][move_end + 1] = piece_constructor(0)
+        # if (move_end + 1) % board_size != 0 \
+        #     and game_state["board"][move_end] + 1 not in [0, 4] \
+        #     and game_state["board"][move_end] + 1 != game_state["board"][move_start]\
+        #     and ((move_end + 1) % board_size == 0 \
+        #         or game_state["board"][move_end + 2] == moving_piece) :
+        #             stdscr.addstr(10,0,'right capture found!')
+        #             new_game_state["board"][move_end + 1] = 0
         # check a row above
-        if move_end - board_size >= 0 \
-            and game_state["board"][move_end] - board_size not in [0, 4] \
-            and game_state["board"][move_end] - board_size != game_state["board"][move_start] \
-            and (move_end - board_size * 2 < 0 \
-                or game_state["board"][move_end - board_size * 2] == moving_piece):
-                    stdscr.addstr(10,0,'above capture found!')
-                    new_game_state["board"][move_end - board_size] = 0
+        adjacent_square = game_state["board"][move_end - board_size] if (move_end - board_size) >= 0 else None
+        bounding_square = game_state["board"][move_end - board_size * 2] if (move_end - board_size * 2) >= 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            stdscr.addstr(10,0,'above capture found!')
+            new_game_state["board"][move_end - board_size] = piece_constructor(0)
+        # if move_end - board_size >= 0 \
+        #     and game_state["board"][move_end] - board_size not in [0, 4] \
+        #     and game_state["board"][move_end] - board_size != game_state["board"][move_start] \
+        #     and (move_end - board_size * 2 < 0 \
+        #         or game_state["board"][move_end - board_size * 2] == moving_piece):
+        #             stdscr.addstr(10,0,'above capture found!')
+        #             new_game_state["board"][move_end - board_size] = 0
         # check a row below
-        if move_end + board_size < board_size * board_size \
-            and game_state["board"][move_end] + board_size not in [0, 4] \
-            and game_state["board"][move_end] + board_size != game_state["board"][move_start] \
-            and (move_end + board_size * 2 >= board_size * board_size \
-                or game_state["board"][move_end + board_size * 2] == moving_piece):
-                    stdscr.addstr(10,0,'below capture found!')
-                    new_game_state["board"][move_end + board_size] = 0
+        adjacent_square = game_state["board"][move_end + board_size] if (move_end + board_size) < board_size * board_size else None
+        bounding_square = game_state["board"][move_end + board_size * 2] if (move_end + board_size * 2) < board_size * board_size else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            stdscr.addstr(10,0,'below capture found!')
+            new_game_state["board"][move_end + board_size] = piece_constructor(0)
+        # if move_end + board_size < board_size * board_size \
+        #     and game_state["board"][move_end] + board_size not in [0, 4] \
+        #     and game_state["board"][move_end] + board_size != game_state["board"][move_start] \
+        #     and (move_end + board_size * 2 >= board_size * board_size \
+        #         or game_state["board"][move_end + board_size * 2] == moving_piece):
+        #             stdscr.addstr(10,0,'below capture found!')
+        #             new_game_state["board"][move_end + board_size] = 0
         # return new game_state
         return new_game_state
 
