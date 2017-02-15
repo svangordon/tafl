@@ -238,6 +238,24 @@ def main(stdscr):
                 highlighted_squares = []
                 active_square = None
 
+        # check for victory / defeat
+        for i in range(board_size * board_size):
+            if game_state["board"][i]["content"] in [3, 5]:
+                if i in range(0, board_size + 1) \
+                    or i in range(board_size * board_size - board_size, board_size * board_size) \
+                    or i % board_size == 0 \
+                    or (i + 1) % board_size == 0:
+                        stdscr.addstr(10, 0, "Defender wins")
+                        stdscr.getch()
+                        return
+                if (i - board_size < 0 or game_state["board"][i - board_size]["content"] in [1, 4]) \
+                    and ((i + 1) % board_size == 0 or game_state["board"][i + 1]["content"] in [1, 4]) \
+                    and (i % board_size == 0 or game_state["board"][i]["content"] in [1, 4]) \
+                    and (i + board_size >= board_size * board_size or game_state["board"][i + board_size]["content"] in [1, 4]):
+                        stdscr.addstr(10, 0, "Attacker wins")
+                        stdscr.getch()
+                        return
+
         cursor_loc = stdscr.getyx()
 
         print_board()
