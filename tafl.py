@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import math
+import copy
 import curses
 from curses import wrapper
 
@@ -32,7 +33,7 @@ def main(stdscr):
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              4, 0, 0, 1, 1, 1, 0, 0, 4]
-    game_state = {"active_player": 0, "board": board}
+    game_state = {"active_player": 0, "board": copy.copy(board)}
     highlighted_squares = []
 
     def get_moves_in_range(board, start, end, step):
@@ -124,9 +125,47 @@ def main(stdscr):
         return y * board_size + x
 
     def complete_move(game_state, move_start, move_end):
-        pass
         # check to see if enemy pieces need removed, remove them
-        # advance player
+        # check square to left
+        moving_piece = game_state["board"][move_start]
+        new_game_state = copy.deepcopy(game_state)
+        new_game_state["board"][move_start] = 0
+        new_game_state["board"][move_end] = moving_piece
+        new_game_state["active_player"] = (new_game_state["active_player"] + 1) % 2
+        # check to the left
+        if move_end % board_size != 0 \
+            and game_state["board"][move_end] - 1 not in [0, 4] \
+            and game_state["board"][move_end] - 1 != game_state["board"][move_start] \
+            and ((move_end - 1) % board_size == 0 \
+                or game_state["board"][move_end - 2] == moving_piece):
+                    stdscr.addstr(10,0,'capture found!')
+                    new_game_state["board"][move_end - 1] = 0
+        # check to the right
+        if (move_end + 1) % board_size != 0 \
+            and game_state["board"][move_end] + 1 not in [0, 4] \
+            and game_state["board"][move_end] + 1 != game_state["board"][move_start]\
+            and ((move_end + 1) % board_size == 0 \
+                or game_state["board"][move_end + 2] == moving_piece) :
+                    stdscr.addstr(10,0,'capture found!')
+                    new_game_state["board"][move_end + 1] = 0
+        # check a row above
+        if move_end - board_size >= 0 \
+            and game_state["board"][move_end] - board_size not in [0, 4] \
+            and game_state["board"][move_end] - board_size != game_state["board"][move_start] \
+            and (move_end - board_size * 2 < 0 \
+                or game_state["board"][move_end - board_size * 2] == moving_piece):
+                    stdscr.addstr(10,0,'capture found!')
+                    new_game_state["board"][move_end - board_size] = 0
+        # check a row below
+        if move_end + board_size < board_size * board_size \
+            and game_state["board"][move_end] + board_size not in [0, 4] \
+            and game_state["board"][move_end] + board_size != game_state["board"][move_start] \
+            and (move_end + board_size * 2 >= board_size * board_size \
+                or game_state["board"][move_end + board_size * 2] == moving_piece):
+                    stdscr.addstr(10,0,'capture found!')
+                    new_game_state["board"][move_end + board_size] = 0
+        # return new game_state
+        return new_game_state
 
     # Set the board up
 
@@ -163,14 +202,14 @@ def main(stdscr):
         if c == ord(' '):
             selected_square = yx_to_point(*stdscr.getyx())
             if active_square == None: #think this is valid...
-                if game_state["board"][selected_square] != (0 and 4):
+                if game_state["board"][selected_square] not in [0, 4]:
                     active_square = yx_to_point(*stdscr.getyx())
                     highlighted_squares = get_moves_for_piece(active_square)
             elif yx_to_point(*stdscr.getyx()) in highlighted_squares:
                 # complete move
                 stdscr.addstr(10,0,'complete move!')
                 highlighted_squares = []
-                pass
+                game_state = complete_move(game_state, active_square, selected_square)
             else:
                 highlighted_squares = []
                 active_square = None
