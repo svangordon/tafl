@@ -168,8 +168,8 @@ def main(stdscr):
         # check square to left
         moving_piece = game_state["board"][move_start]
         new_game_state = copy.deepcopy(game_state)
-        new_game_state["board"][move_start] = piece_constructor(0)
-        new_game_state["board"][move_end] = moving_piece
+        new_game_state["board"][move_start] = piece_constructor(4) if moving_piece["content"] == 5 else piece_constructor(0)
+        new_game_state["board"][move_end] = moving_piece if moving_piece["content"] != 5 else piece_constructor(3)
         new_game_state["active_player"] = (new_game_state["active_player"] + 1) % 2
         # check to the left
         adjacent_square = game_state["board"][move_end - 1] if move_end % board_size != 0 else None
