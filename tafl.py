@@ -158,11 +158,12 @@ def main(stdscr):
         def check_capture(moving_piece, adjacent_square, bounding_square):
             # TODO: add support for kings, thrones
             if adjacent_square == None:
-                return false
+                return False
             elif adjacent_square["content"] in [1, 2]:
-                return adjacent_square["owner"] not in [None, moving_piece["owner"]] \
+                return adjacent_square["owner"] != moving_piece["owner"] \
                     and bounding_square != None \
-                    and (bounding_square["owner"] == moving_piece["owner"])
+                    and (bounding_square["owner"] == moving_piece["owner"] \
+                        or bounding_square["content"] == 4)
         # check to see if enemy pieces need removed, remove them
         # check square to left
         moving_piece = game_state["board"][move_start]
@@ -198,8 +199,6 @@ def main(stdscr):
     cursor_loc = (math.floor(board_size / 2), math.floor(board_size / 2))
 
     active_square = None
-    active_player = None
-
 
     # . 1 .
     # 4 . 2
