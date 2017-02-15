@@ -120,9 +120,9 @@ def main(stdscr):
             if char == 0:
                 return "."
             elif char == 1:
-                return 'o'
-            elif char == 2:
                 return 'x'
+            elif char == 2:
+                return 'o'
             elif char == 3:
                 return 'O'
             elif char == 4:
@@ -227,14 +227,14 @@ def main(stdscr):
         if c == ord(' '):
             selected_square = yx_to_point(*stdscr.getyx())
             if active_square == None:
-                if game_state["board"][selected_square] not in [0, 4]:
+                if game_state["board"][selected_square]["owner"] == game_state["active_player"]:
                     active_square = yx_to_point(*stdscr.getyx())
                     highlighted_squares = get_moves_for_piece(active_square)
             elif yx_to_point(*stdscr.getyx()) in highlighted_squares:
                 # complete move
-                # stdscr.addstr(10,0,'complete move!')
                 highlighted_squares = []
                 game_state = complete_move(game_state, active_square, selected_square)
+                active_square = None
             else:
                 highlighted_squares = []
                 active_square = None
