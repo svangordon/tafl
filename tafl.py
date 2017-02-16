@@ -68,12 +68,16 @@ def main(stdscr):
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              1, 0, 0, 0, 2, 0, 0, 0, 1,
-             1, 1, 2, 2, 4, 2, 2, 1, 1,
+             1, 1, 2, 2, 5, 2, 2, 1, 1,
              1, 0, 0, 0, 2, 0, 0, 0, 1,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
-             0, 0, 0, 0, 1, 0, 1, 3, 1,
-             4, 0, 0, 1, 1, 1, 0, 1, 4]
-    game_state = {"active_player": 0, "board": board_constructor(board)}
+             0, 0, 0, 0, 1, 0, 0, 0, 0,
+             4, 0, 0, 1, 1, 1, 0, 0, 4]
+    game_state = {
+        "active_player": 0,
+        "board": board_constructor(board),
+        "status": 'in-play'
+        }
     highlighted_squares = []
 
     def get_moves_in_range(board, start, end, step):
@@ -201,6 +205,23 @@ def main(stdscr):
         bounding_square = game_state["board"][move_end + board_size * 2] if (move_end + board_size * 2) < board_size * board_size else None
         if check_capture(moving_piece, adjacent_square, bounding_square):
             new_game_state["board"][move_end + board_size] = piece_constructor(0)
+
+        # Check for victory
+        # check for victory / defeat
+        #!!!: We're grabbing board_size here, from the main. should do that better
+        for i in range(len(new_game_state["board"])):
+            if new_game_state["board"][i]["content"] in [3, 5]:
+                if i in range(0, board_size + 1) \
+                    or i in range(board_size * board_size - board_size, board_size * board_size) \
+                    or i % board_size == 0 \
+                    or (i + 1) % board_size == 0:
+                        new_game_state["status"] = 'defender_wins'
+                if (i - board_size < 0 or new_game_state["board"][i - board_size]["content"] in [1, 4]) \
+                    and ((i + 1) % board_size == 0 or new_game_state["board"][i + 1]["content"] in [1, 4]) \
+                    and ((i - 1) % board_size == 0 or new_game_state["board"][i - 1]["content"] in [1, 4]) \
+                    and (i + board_size >= board_size * board_size or new_game_state["board"][i + board_size]["content"] in [1, 4]):
+                        new_game_state["status"] = 'attacker_wins'
+
         return new_game_state
 ###
     # Set the board up
@@ -249,22 +270,14 @@ def main(stdscr):
                 active_square = None
 
         # check for victory / defeat
-        for i in range(board_size * board_size):
-            if game_state["board"][i]["content"] in [3, 5]:
-                if i in range(0, board_size + 1) \
-                    or i in range(board_size * board_size - board_size, board_size * board_size) \
-                    or i % board_size == 0 \
-                    or (i + 1) % board_size == 0:
-                        stdscr.addstr(10, 0, "Defender wins")
-                        stdscr.getch()
-                        return
-                if (i - board_size < 0 or game_state["board"][i - board_size]["content"] in [1, 4]) \
-                    and ((i + 1) % board_size == 0 or game_state["board"][i + 1]["content"] in [1, 4]) \
-                    and ((i - 1) % board_size == 0 or game_state["board"][i - 1]["content"] in [1, 4]) \
-                    and (i + board_size >= board_size * board_size or game_state["board"][i + board_size]["content"] in [1, 4]):
-                        stdscr.addstr(10, 0, "Attacker wins")
-                        stdscr.getch()
-                        return
+        if game_state["status"] == "attacker_wins":
+            stdscr.addstr(10, 0, "Attacker wins")
+            stdscr.getch()
+            return
+        elif game_state["status"] == "defender_wins":
+            stdscr.addstr(10, 0, "Defender wins")
+            stdscr.getch()
+            return
 
         cursor_loc = stdscr.getyx()
 
