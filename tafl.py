@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+    # board = [4, 0, 0, 1, 1, 1, 0, 0, 4,
+    #          0, 0, 0, 0, 1, 0, 0, 0, 0,
+    #          0, 0, 0, 0, 2, 0, 0, 0, 0,
+    #          1, 0, 0, 0, 2, 0, 0, 0, 1,
+    #          1, 1, 2, 2, 4, 2, 2, 1, 1,
+    #          1, 0, 0, 0, 2, 0, 0, 0, 1,
+    #          0, 0, 0, 0, 2, 0, 0, 0, 0,
+    #          0, 0, 0, 0, 1, 0, 0, 0, 0,
+    #          4, 0, 0, 1, 1, 1, 0, 0, 4]
+
 import math
 import copy
 import curses
@@ -58,11 +68,11 @@ def main(stdscr):
              0, 0, 0, 0, 1, 0, 0, 0, 0,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              1, 0, 0, 0, 2, 0, 0, 0, 1,
-             1, 1, 2, 2, 5, 2, 2, 1, 1,
+             1, 1, 2, 2, 4, 2, 2, 1, 1,
              1, 0, 0, 0, 2, 0, 0, 0, 1,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
-             0, 0, 0, 0, 1, 0, 0, 0, 0,
-             4, 0, 0, 1, 1, 1, 0, 0, 4]
+             0, 0, 0, 0, 1, 0, 1, 3, 1,
+             4, 0, 0, 1, 1, 1, 0, 1, 4]
     game_state = {"active_player": 0, "board": board_constructor(board)}
     highlighted_squares = []
 
@@ -250,7 +260,7 @@ def main(stdscr):
                         return
                 if (i - board_size < 0 or game_state["board"][i - board_size]["content"] in [1, 4]) \
                     and ((i + 1) % board_size == 0 or game_state["board"][i + 1]["content"] in [1, 4]) \
-                    and (i % board_size == 0 or game_state["board"][i]["content"] in [1, 4]) \
+                    and ((i - 1) % board_size == 0 or game_state["board"][i - 1]["content"] in [1, 4]) \
                     and (i + board_size >= board_size * board_size or game_state["board"][i + board_size]["content"] in [1, 4]):
                         stdscr.addstr(10, 0, "Attacker wins")
                         stdscr.getch()
