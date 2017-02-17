@@ -1,6 +1,7 @@
 import math
 import copy
 import random
+from pprint import pprint
 
 def _board_constructor(board_layout):
     return list(map(_piece_constructor, board_layout))
@@ -28,11 +29,11 @@ def _piece_constructor(input_char):
     else:
         raise Exception('bad char input')
 
-init_board = [4, 0, 0, 1, 1, 1, 0, 0, 4,
-             0, 0, 0, 0, 1, 0, 0, 0, 0,
-             0, 0, 0, 0, 2, 0, 0, 0, 0,
-             1, 0, 0, 0, 2, 0, 0, 0, 1,
-             1, 1, 2, 2, 5, 2, 2, 1, 1,
+init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
+             0, 1, 0, 0, 1, 0, 0, 0, 0,
+             0, 3, 1, 0, 2, 1, 0, 0, 0,
+             1, 1, 0, 0, 2, 0, 0, 0, 1,
+             0, 0, 2, 2, 4, 2, 2, 1, 1,
              1, 0, 0, 0, 2, 0, 0, 0, 1,
              0, 0, 0, 0, 2, 0, 0, 0, 0,
              0, 0, 0, 0, 1, 0, 0, 0, 0,
@@ -61,16 +62,11 @@ class GameState:
         self.row_size = row_size
         self.status = status
         self.set_possible_moves()
-        if self.ply < 1:
+        if self.ply < 2:
             for i in self.possible_moves:
                 for k in self.possible_moves[i]:
                     self.generate_child_node(i, k)
-        if status == "attacker_wins":
-            self.evaluation = 100
-        elif status == "defender_wins":
-            self.evaluation = -100
-        else:
-            self.evaluation = self.evaluate_position()
+        self.evaluation = self.evaluate_position()
 
     def set_possible_moves(self):
         for i in range(len(self.board)):
@@ -222,29 +218,48 @@ class GameState:
                 king_position = i
         # check to see if defender can escape this turn
         defender_can_escape = False
-        if self.active_player == 'defender':
-            try:
-                for move in self.possible_moves[king_position]:
-                    if move - self.row_size < 0 \
-                        or move + self.row_size >= self.row_size ** 2 \
-                        or move % self.row_size == 0 \
-                        or (move + 1) % self.row_size == 0:
-                            defender_can_escape = True
-            except ValueError:
-                pass
-        return random.random()
+        # print('king pos == ' + str(king_position))
+        if king_position - self.row_size < 0 \
+            or king_position % self.row_size == 0 \
+            or (king_position + 1) % self.row_size == 0 \
+            or king_position + self.row_size >= self.row_size ** 2:
+                defender_can_escape = True
+        # if self.active_player == 'defender':
+        #     try:
+        #         for move in self.possible_moves[king_position]:
+        #             if move - self.row_size < 0 \
+        #                 or move + self.row_size >= self.row_size ** 2 \
+        #                 or move % self.row_size == 0 \
+        #                 or (move + 1) % self.row_size == 0:
+        #                     defender_can_escape = True
+        #     except ValueError:
+        #         pass
+        if defender_can_escape:
+            # print('defender can escape')
+            return -100
+        else:
+            return material_balance
 
     def get_best_move(self):
         def evaluate_children(child_nodes):
             coefficient = 1 if self.active_player == 'attacker' else -1
-            best_eval = -200 * coefficient
+            best_eval = None
             best_node = None
-            for node in child_nodes:
-                node_best_move = node.get_best_move()
-                print(node_best_move.evaluation * coefficient, best_eval)
-                if node_best_move.evaluation * coefficient > best_eval:
-                    best_eval = node_best_move.evaluation
+            for node in [child_node.get_best_move() for child_node in child_nodes]:
+                if best_eval == None:
+                    best_eval = node.evaluation
                     best_node = node
+                elif self.active_player == 'attacker' and \
+                    node.evaluation > best_eval:
+                        # print("{0} > {1} {2}".format(node.evaluation, best_eval, node.evaluation > best_eval))
+                        best_eval = node.evaluation
+                        best_node = node
+                elif self.active_player == 'defender' and \
+                    node.evaluation < best_eval:
+                        # print("{0} > {1} {2}".format(node.evaluation, best_eval, node.evaluation < best_eval))
+                        best_eval = node.evaluation
+                        best_node = node
+            # print('best node is' + str(best_node.previous_moves[-1]))
             return best_node
         if not self.child_nodes:
             return self # has no children, so returns self
@@ -253,4 +268,9 @@ class GameState:
 
 
 game_state = GameState(**init_game_state)
-print(str(game_state.get_best_move()))
+# game_state.get_best_move()
+pprint(vars(game_state.get_best_move()))
+# print(game_state.get_best_move().previous_moves[-1])
+# print(str([(node.previous_moves[-1], node.evaluation) for node in game_state.child_nodes]))
+# print(str(game_state.get_best_move()))
+# print(str(game_state.child_nodes[0]))
