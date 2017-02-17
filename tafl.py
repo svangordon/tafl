@@ -76,22 +76,25 @@ def main(stdscr):
     game_state = {
         "active_player": 0,
         "board": board_constructor(board),
+        "players": ('hum', 'cpu'),
+        "row_size": 9,
         "status": 'in-play'
         }
     highlighted_squares = []
 
-    def get_moves_in_range(board, start, end, step):
-        found_moves = []
-        for i in range(start, end, step):
-            if board[i]["content"] == 0:
-                found_moves.append(i)
-            elif board[i]["content"] == 4:
-                continue
-            else:
-                break
-        return found_moves
+
 
     def get_moves_for_piece(coord):
+        def get_moves_in_range(board, start, end, step):
+            found_moves = []
+            for i in range(start, end, step):
+                if board[i]["content"] == 0:
+                    found_moves.append(i)
+                elif board[i]["content"] == 4:
+                    continue
+                else:
+                    break
+            return found_moves
         size = board_size # unnecessary
         legal_moves = []
         # print(range(coord, math.ceil(coord / size) * size))
@@ -151,19 +154,6 @@ def main(stdscr):
             if i in highlighted_squares:
                 attr.append(curses.color_pair(1))
             stdscr.addstr(math.floor(i / board_size), i % board_size, char_converter(game_state["board"][i]), *attr)
-
-    def move_cursor(direction):
-        if direction == 1:
-            stdscr.move(max(0, stdscr.getyx()[0] - 1), stdscr.getyx()[1])
-        elif direction == 2:
-            stdscr.move(stdscr.getyx()[0], min(board_size - 1, stdscr.getyx()[1] + 1))
-        elif direction == 3:
-            stdscr.move(min(board_size - 1, stdscr.getyx()[0] + 1), stdscr.getyx()[1])
-        elif direction == 4:
-            # print('left!')
-            stdscr.move(stdscr.getyx()[0], max(0, stdscr.getyx()[1] - 1))
-        else:
-            raise Exception('bad direction: ' + direction)
 
     def yx_to_point(y, x):
         return y * board_size + x
@@ -236,7 +226,6 @@ def main(stdscr):
     # . 3 .
 
     while True:
-        direction = None
         stdscr.move(*cursor_loc)
         c = stdscr.getch()
         ####
