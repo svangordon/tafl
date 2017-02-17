@@ -234,10 +234,15 @@ class GameState:
         #                     defender_can_escape = True
         #     except ValueError:
         #         pass
+        try:
+            pprint(self.previous_moves)
+        except 3:
+            print('node 0')
         if defender_can_escape:
-            # print('defender can escape')
+            print('defender can escape\n')
             return -100
         else:
+            print('defender CANNOT escape\n')
             return material_balance
 
     def get_best_move(self):
