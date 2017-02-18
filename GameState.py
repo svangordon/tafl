@@ -40,10 +40,8 @@ init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
              4, 0, 0, 1, 1, 1, 0, 0, 4]
 
 init_game_state = {
-    "active_player": 1,
+    "active_player": 0,
     "board": _board_constructor(init_board),
-    "child_nodes": [],
-    # "possible_moves": {},
     "ply": 0,
     "previous_moves": [],
     "row_size": 9,
@@ -51,18 +49,18 @@ init_game_state = {
     }
 
 class GameState:
-    # max_ply = 1
-    def __init__(self, active_player, board, child_nodes, ply, previous_moves, row_size, status):
+    max_ply = 2
+    def __init__(self, active_player, board, ply, previous_moves, row_size, status):
         self.active_player = active_player
         self.board = board
-        self.child_nodes = child_nodes
+        self.child_nodes = []
         self.ply = ply
         self.possible_moves = {}
         self.previous_moves = previous_moves
         self.row_size = row_size
         self.status = status
         self.set_possible_moves()
-        if self.ply < 2:
+        if self.ply < self.max_ply and self.status == 'in-play':
             for i in self.possible_moves:
                 for k in self.possible_moves[i]:
                     self.generate_child_node(i, k)
@@ -201,25 +199,11 @@ class GameState:
             and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
             and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
             and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
-                    # print('found for game')
-                    # for i in range(self.row_size):
-                    #     pprint([square['content'] for square in new_game_board[i * self.row_size : (i+1) * self.row_size]])
-                    # print("{0} {1}".format(move_start, move_end))
-                    # pprint([square['content'] for square in new_game_board])
-                    # print(new_game_board[king_position - self.row_size]["content"] in [1, 4])
-                    # print(new_game_board[king_position + 1]["content"] in [1, 4])
-                    # print(new_game_board[king_position - 1]["content"] in [1, 4])
-                    # print(new_game_board[king_position + self.row_size]["content"] in [1, 4])
                     new_game_status = 'attacker_wins'
-        # if (i - self.row_size < 0 or new_game_board[i - self.row_size]["content"] in [1, 4]) \
-        #     and ((i + 1) % self.row_size == 0 or new_game_board[i + 1]["content"] in [1, 4]) \
-        #     and ((i - 1) % self.row_size == 0 or new_game_board[i - 1]["content"] in [1, 4]) \
-        #     and (i + self.row_size >= self.row_size * self.row_size or new_game_board[i + self.row_size]["content"] in [1, 4]):
-        #         new_game_status = 'attacker_wins'
 
         new_active_player = (self.active_player + 1) % 2
 
-        self.child_nodes.append(GameState(new_active_player, new_game_board, [], self.ply + 1, new_previous_moves, self.row_size, new_game_status))
+        self.child_nodes.append(GameState(new_active_player, new_game_board, self.ply + 1, new_previous_moves, self.row_size, new_game_status))
 
     #Positive for attacker, negative for defender
     def evaluate_position(self):
@@ -241,7 +225,6 @@ class GameState:
                 king_position = i
         # check to see if defender can escape this turn
         defender_can_escape = False
-        # print('king pos == ' + str(king_position))
         if king_position - self.row_size < 0 \
             or king_position % self.row_size == 0 \
             or (king_position + 1) % self.row_size == 0 \
@@ -272,37 +255,19 @@ class GameState:
         def evaluate_children(child_nodes):
             best_eval = None
             best_node = None
-            # pprint([(child_node.get_best_move().previous_moves, child_node.get_best_move().evaluation) for child_node in child_nodes])
             for node in [child_node.get_best_move() for child_node in child_nodes]:
-                # print('top of loop, best eval == {0}'.format(best_eval))
                 if best_eval == None:
-                    # print("first node {0}".format(node.previous_moves[-1]))
-                    print('first case, best eval == {0}'.format(best_eval))
                     best_eval = node.evaluation
                     best_node = node
-                elif self.active_player == 0:
-                    if node.evaluation > best_eval:
-                        print('=========================')
-                        # print("new best node {0}".format(node.previous_moves[-1]))
-                        best_eval = node.evaluation
-                        best_node = node
-                    else:
-                        print('attacker; node is worse')
-                elif self.active_player == 1:
-                    if node.evaluation < best_eval:
-                        print('=========================')
-                        # print("{0} > {1} {2}".format(node.evaluation, best_eval, node.evaluation < best_eval))
-                        best_eval = node.evaluation
-                        best_node = node
-                    else:
-                        print('defender; node is worse')
-                else:
-                    print('else condition; {0}'.format(self.active_player))
-                # print('bottom of loop, best eval == {0}'.format(best_eval))
-            # print('best node is' + str(best_node.previous_moves[-1]))
+                elif self.active_player == 0 and node.evaluation > best_eval:
+                    best_eval = node.evaluation
+                    best_node = node
+                elif self.active_player == 1 and node.evaluation < best_eval:
+                    best_eval = node.evaluation
+                    best_node = node
             return best_node
         if not self.child_nodes or self.status in ['attacker_wins', 'defender_wins']:
-            return self # has no children, so returns self
+            return self # has no children or the game is over, so returns self
         else:
             return evaluate_children(self.child_nodes)
 
