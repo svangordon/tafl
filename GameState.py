@@ -196,12 +196,21 @@ class GameState:
             or (king_position + 1) % self.row_size == 0:
                 new_game_status = 'defender_wins'
                 #: in the process of debugging why it thinks 35, 34 kills the king
-        print('king_position == {0}'.format(king_position))
+        # print('king_position == {0}'.format(king_position))
         if (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
             and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
             and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
             and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
-                new_game_status = 'attacker_wins'
+                    # print('found for game')
+                    # for i in range(self.row_size):
+                    #     pprint([square['content'] for square in new_game_board[i * self.row_size : (i+1) * self.row_size]])
+                    # print("{0} {1}".format(move_start, move_end))
+                    # pprint([square['content'] for square in new_game_board])
+                    # print(new_game_board[king_position - self.row_size]["content"] in [1, 4])
+                    # print(new_game_board[king_position + 1]["content"] in [1, 4])
+                    # print(new_game_board[king_position - 1]["content"] in [1, 4])
+                    # print(new_game_board[king_position + self.row_size]["content"] in [1, 4])
+                    new_game_status = 'attacker_wins'
         # if (i - self.row_size < 0 or new_game_board[i - self.row_size]["content"] in [1, 4]) \
         #     and ((i + 1) % self.row_size == 0 or new_game_board[i + 1]["content"] in [1, 4]) \
         #     and ((i - 1) % self.row_size == 0 or new_game_board[i - 1]["content"] in [1, 4]) \
@@ -214,6 +223,11 @@ class GameState:
 
     #Positive for attacker, negative for defender
     def evaluate_position(self):
+        # checking for win / loss should be consolidated in one place
+        if self.status == "defender_wins":
+            return -100
+        if self.status == "attacker_wins":
+            return 100
         material_balance = 0
         for piece in self.board:
             if piece["content"] == 1:
@@ -243,45 +257,60 @@ class GameState:
         #                     defender_can_escape = True
         #     except ValueError:
         #         pass
-        try:
-            pprint(self.previous_moves)
-        except 3:
-            print('node 0')
+        # try:
+        #     pprint(self.previous_moves)
+        # except:
+        #     print('node 0')
         if defender_can_escape:
-            print('defender can escape\n')
+            # print('defender can escape\n')
             return -100
         else:
-            print('defender CANNOT escape\n')
+            # print('defender CANNOT escape\n')
             return material_balance
 
     def get_best_move(self):
         def evaluate_children(child_nodes):
-            coefficient = 1 if self.active_player == 'attacker' else -1
             best_eval = None
             best_node = None
+            # pprint([(child_node.get_best_move().previous_moves, child_node.get_best_move().evaluation) for child_node in child_nodes])
             for node in [child_node.get_best_move() for child_node in child_nodes]:
+                # print('top of loop, best eval == {0}'.format(best_eval))
                 if best_eval == None:
+                    # print("first node {0}".format(node.previous_moves[-1]))
+                    print('first case, best eval == {0}'.format(best_eval))
                     best_eval = node.evaluation
                     best_node = node
-                elif self.active_player == 'attacker' and \
-                    node.evaluation > best_eval:
-                        # print("{0} > {1} {2}".format(node.evaluation, best_eval, node.evaluation > best_eval))
+                elif self.active_player == 0:
+                    if node.evaluation > best_eval:
+                        print('=========================')
+                        # print("new best node {0}".format(node.previous_moves[-1]))
                         best_eval = node.evaluation
                         best_node = node
-                elif self.active_player == 'defender' and \
-                    node.evaluation < best_eval:
+                    else:
+                        print('attacker; node is worse')
+                elif self.active_player == 1:
+                    if node.evaluation < best_eval:
+                        print('=========================')
                         # print("{0} > {1} {2}".format(node.evaluation, best_eval, node.evaluation < best_eval))
                         best_eval = node.evaluation
                         best_node = node
+                    else:
+                        print('defender; node is worse')
+                else:
+                    print('else condition; {0}'.format(self.active_player))
+                # print('bottom of loop, best eval == {0}'.format(best_eval))
             # print('best node is' + str(best_node.previous_moves[-1]))
             return best_node
-        if not self.child_nodes:
+        if not self.child_nodes or self.status in ['attacker_wins', 'defender_wins']:
             return self # has no children, so returns self
         else:
             return evaluate_children(self.child_nodes)
 
 
 game_state = GameState(**init_game_state)
+# game_state.get_best_move()
+# pprint([(child_node.previous_moves, child_node.get_best_move().evaluation) for child_node in game_state.child_nodes])
+# pprint([(child_node.previous_moves, child_node.evaluation) for child_node in game_state.child_nodes])
 # game_state.get_best_move()
 pprint(vars(game_state.get_best_move()))
 # print(game_state.get_best_move().previous_moves[-1])
