@@ -196,6 +196,7 @@ class GameState:
             or (king_position + 1) % self.row_size == 0:
                 new_game_status = 'defender_wins'
                 #: in the process of debugging why it thinks 35, 34 kills the king
+        print('king_position == {0}'.format(king_position))
         if (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
             and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
             and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
