@@ -185,19 +185,27 @@ class GameState:
         if check_capture(moving_piece, adjacent_square, bounding_square):
             new_game_board[move_end + self.row_size] = self.piece_constructor(0)
 
-        # Check for victory
+        # Check king position for victory
         for i in range(len(new_game_board)):
-            if new_game_board[i]["content"] in [3, 5]:
-                if i in range(0, self.row_size + 1) \
-                    or i in range(self.row_size * self.row_size - self.row_size, self.row_size * self.row_size) \
-                    or i % self.row_size == 0 \
-                    or (i + 1) % self.row_size == 0:
-                        new_game_status = 'defender_wins'
-                if (i - self.row_size < 0 or new_game_board[i - self.row_size]["content"] in [1, 4]) \
-                    and ((i + 1) % self.row_size == 0 or new_game_board[i + 1]["content"] in [1, 4]) \
-                    and ((i - 1) % self.row_size == 0 or new_game_board[i - 1]["content"] in [1, 4]) \
-                    and (i + self.row_size >= self.row_size * self.row_size or new_game_board[i + self.row_size]["content"] in [1, 4]):
-                        new_game_status = 'attacker_wins'
+            if new_game_board[i]["content"] in [3,5]:
+                king_position = i
+                break
+        if king_position in range(0, self.row_size) \
+            or king_position in range(self.row_size * self.row_size - self.row_size, self.row_size ** 2) \
+            or king_position % self.row_size == 0 \
+            or (king_position + 1) % self.row_size == 0:
+                new_game_status = 'defender_wins'
+                #: in the process of debugging why it thinks 35, 34 kills the king
+        if (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
+            and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
+            and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
+            and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
+                new_game_status = 'attacker_wins'
+        # if (i - self.row_size < 0 or new_game_board[i - self.row_size]["content"] in [1, 4]) \
+        #     and ((i + 1) % self.row_size == 0 or new_game_board[i + 1]["content"] in [1, 4]) \
+        #     and ((i - 1) % self.row_size == 0 or new_game_board[i - 1]["content"] in [1, 4]) \
+        #     and (i + self.row_size >= self.row_size * self.row_size or new_game_board[i + self.row_size]["content"] in [1, 4]):
+        #         new_game_status = 'attacker_wins'
 
         new_active_player = (self.active_player + 1) % 2
 
