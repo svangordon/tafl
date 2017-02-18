@@ -40,7 +40,7 @@ init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
              4, 0, 0, 1, 1, 1, 0, 0, 4]
 
 init_game_state = {
-    "active_player": 0,
+    "active_player": 1,
     "board": _board_constructor(init_board),
     "child_nodes": [],
     # "possible_moves": {},
