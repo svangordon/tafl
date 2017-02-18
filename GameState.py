@@ -230,20 +230,6 @@ class GameState:
             or (king_position + 1) % self.row_size == 0 \
             or king_position + self.row_size >= self.row_size ** 2:
                 defender_can_escape = True
-        # if self.active_player == 'defender':
-        #     try:
-        #         for move in self.possible_moves[king_position]:
-        #             if move - self.row_size < 0 \
-        #                 or move + self.row_size >= self.row_size ** 2 \
-        #                 or move % self.row_size == 0 \
-        #                 or (move + 1) % self.row_size == 0:
-        #                     defender_can_escape = True
-        #     except ValueError:
-        #         pass
-        # try:
-        #     pprint(self.previous_moves)
-        # except:
-        #     print('node 0')
         if defender_can_escape:
             # print('defender can escape\n')
             return -100
