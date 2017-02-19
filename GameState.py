@@ -83,12 +83,7 @@ class GameState:
         self.evaluation = self.evaluate_position()
 
     def set_possible_moves(self):
-        for i in range(len(self.board)):
-            if self.board[i]["owner"] == self.active_player:
-                self.get_moves_for_piece(i)
-
-    def get_moves_for_piece(self, coord):
-        def get_moves_in_range(board, start, end, step):
+        def get_moves_in_range(start, end, step):
             found_moves = []
             for i in range(start, end, step):
                 if self.board[i]["content"] == 0:
@@ -98,40 +93,34 @@ class GameState:
                 else:
                     break
             return found_moves
-        legal_moves = []
-        # Check row looking to the right if we're not in the last column
-        if (coord + 1) % self.row_size != 0:
-            legal_moves.extend(get_moves_in_range(
-                self.board,
-                coord + 1,
-                math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
-                else coord + self.row_size,
-                1))
-
-        # Check row looking to the left if we're not in the first column
-        if coord % self.row_size != 0:
-            legal_moves.extend(get_moves_in_range(
-                self.board,
-                coord - 1,
-                math.floor(coord / self.row_size) * self.row_size - 1,
-                -1))
-
-        if coord - self.row_size >= 0:
-            legal_moves.extend(get_moves_in_range(
-                self.board,
-                coord - self.row_size,
-                -1,
-                -self.row_size))
-
-        if coord + self.row_size <= len(self.board):
-            legal_moves.extend(get_moves_in_range(
-                self.board,
-                coord + self.row_size,
-                self.row_size * self.row_size,
-                self.row_size))
-        if not len(legal_moves) == 0:
-            self.possible_moves[coord] = legal_moves
-        # return legal_moves
+        for coord in range(self.board_size ** 2):
+            if self.board[coord]["owner"] == self.active_player:
+                legal_moves = []
+                # Check row looking to the right if we're not in the last column
+                if (coord + 1) % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + 1,
+                        math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
+                        else coord + self.row_size,
+                        1))
+                # Check row looking to the left if we're not in the first column
+                if coord % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - 1,
+                        math.floor(coord / self.row_size) * self.row_size - 1,
+                        -1))
+                if coord - self.row_size >= 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - self.row_size,
+                        -1,
+                        -self.row_size))
+                if coord + self.row_size <= self.board_size ** 2:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + self.row_size,
+                        self.row_size * self.row_size,
+                        self.row_size))
+                if not len(legal_moves) == 0:
+                    self.possible_moves[coord] = legal_moves
 
     def board_constructor(self, board_layout):
         return list(map(self.piece_constructor, board_layout))
@@ -280,7 +269,7 @@ game_state = GameState(**init_game_state)
 # pprint([(child_node.previous_moves, child_node.get_best_move().evaluation) for child_node in game_state.child_nodes])
 # pprint([(child_node.previous_moves, child_node.evaluation) for child_node in game_state.child_nodes])
 # game_state.get_best_move()
-# pprint(vars(game_state.get_best_move()))
+pprint(vars(game_state.get_best_move()))
 # print(game_state.get_best_move().previous_moves[-1])
 # print(str([(node.previous_moves[-1], node.evaluation) for node in game_state.child_nodes]))
 # print(str(game_state.get_best_move()))
