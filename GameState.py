@@ -190,12 +190,12 @@ class GameState:
             new_game_board[move_end + self.row_size] = self.piece_constructor(0)
 
         # Check king position for victory
-        for i in range(len(new_game_board)):
+        for i in range(self.board_size ** 2):
             if new_game_board[i]["content"] in [3,5]:
                 king_position = i
                 break
         if king_position in range(0, self.row_size) \
-            or king_position in range(self.row_size * self.row_size - self.row_size, self.row_size ** 2) \
+            or king_position in range(self.row_size * (self.row_size - 1), self.row_size ** 2) \
             or king_position % self.row_size == 0 \
             or (king_position + 1) % self.row_size == 0:
                 new_game_status = 'defender_wins'
