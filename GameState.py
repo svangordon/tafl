@@ -50,9 +50,25 @@ init_game_state = {
 
 class GameState:
     max_ply = 2
+    default_board = [
+                 4, 0, 0, 1, 1, 1, 0, 0, 4,
+                 0, 0, 0, 0, 1, 0, 0, 0, 0,
+                 0, 0, 0, 0, 2, 0, 0, 0, 0,
+                 1, 0, 0, 0, 2, 0, 0, 0, 1,
+                 1, 1, 2, 2, 5, 2, 2, 1, 1,
+                 1, 0, 0, 0, 2, 0, 0, 0, 1,
+                 0, 0, 0, 0, 2, 0, 0, 0, 0,
+                 0, 0, 0, 0, 1, 0, 0, 0, 0,
+                 4, 0, 0, 1, 1, 1, 0, 0, 4]
     def __init__(self, active_player, board, ply, previous_moves, row_size, status):
         self.active_player = active_player
-        self.board = board
+        try:
+            int(board[0])
+            self.board = board
+        except ValueError:
+            self.board = self.board_constructor(board)
+        except IndexError:
+            self.board = self.board_constructor(self.default_board)
         self.child_nodes = []
         self.ply = ply
         self.possible_moves = {}
