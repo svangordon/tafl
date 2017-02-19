@@ -41,7 +41,7 @@ init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
 
 init_game_state = {
     "active_player": 0,
-    "board": _board_constructor(init_board),
+    "board": [],
     "ply": 0,
     "previous_moves": [],
     "row_size": 9,
@@ -63,12 +63,14 @@ class GameState:
     def __init__(self, active_player, board, ply, previous_moves, row_size, status):
         self.active_player = active_player
         try:
-            int(board[0])
-            self.board = self.board_constructor(board)
-        except TypeError:
-            self.board = board
+            board[0]
         except IndexError:
-            self.board = self.board_constructor(self.default_board)
+            board = self.default_board
+        try:
+            dict(board[0])
+            self.board = board
+        except TypeError:
+            self.board = list(map(self.piece_constructor, board))
         self.child_nodes = []
         self.ply = ply
         self.possible_moves = {}
@@ -266,7 +268,7 @@ game_state = GameState(**init_game_state)
 # pprint([(child_node.previous_moves, child_node.get_best_move().evaluation) for child_node in game_state.child_nodes])
 # pprint([(child_node.previous_moves, child_node.evaluation) for child_node in game_state.child_nodes])
 # game_state.get_best_move()
-pprint(vars(game_state.get_best_move()))
+# pprint(vars(game_state.get_best_move()))
 # print(game_state.get_best_move().previous_moves[-1])
 # print(str([(node.previous_moves[-1], node.evaluation) for node in game_state.child_nodes]))
 # print(str(game_state.get_best_move()))
