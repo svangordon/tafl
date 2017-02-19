@@ -35,16 +35,17 @@ class GameState:
                  0, 0, 0, 0, 1, 0, 0, 0, 0,
                  4, 0, 0, 1, 1, 1, 0, 0, 4]
     def __init__(self, active_player, board, ply, previous_moves, row_size, status):
-        self.active_player = active_player
+        # Polymorphically set the board
         try:
             board[0]
         except IndexError:
             board = self.default_board
         try:
             dict(board[0])
-            self.board = board
         except TypeError:
-            self.board = list(map(self.piece_constructor, board))
+            board = list(map(self.piece_constructor, board))
+        self.active_player = active_player
+        self.board = board
         self.child_nodes = []
         self.ply = ply
         self.possible_moves = {}
@@ -56,34 +57,10 @@ class GameState:
             for i in self.possible_moves:
                 for k in self.possible_moves[i]:
                     self.generate_child_node(i, k)
-        self.evaluation = self.evaluate_position()
+        # self.evaluation = 0 #self.evaluate_position()
 
-    @staticmethod
-    def piece_constructor(input_char):
-        def __constructor(content, name, owner, sides_to_capture=None):
-            return { #TODO: make this more pythonic
-                "content": content,
-                "name": name,
-                "owner": owner,
-                "sides_to_capture": sides_to_capture
-            }
-        if input_char == 0:
-            return __constructor(0, 'empty', None)
-        elif input_char == 1:
-            return __constructor(1, 'attacker', 0, 2)
-        elif input_char == 2:
-            return __constructor(2, 'defender', 1, 2)
-        elif input_char == 3:
-            return __constructor(3, 'king', 1, 4)
-        elif input_char == 4:
-            return __constructor(4, 'throne', None)
-        elif input_char == 5:
-            return __constructor(5, 'throned_king', 1, 4)
-        else:
-            raise Exception('bad char input')
-
-    #Positive for attacker, negative for defender
-    def evaluate_position(self):
+    @property
+    def evaluation(self):
         # checking for win / loss should be consolidated in one place
         if self.status == "defender_wins":
             return -100
@@ -113,6 +90,30 @@ class GameState:
         else:
             # print('defender CANNOT escape\n')
             return material_balance
+
+    @staticmethod
+    def piece_constructor(input_char):
+        def __constructor(content, name, owner, sides_to_capture=None):
+            return { #TODO: make this more pythonic
+                "content": content,
+                "name": name,
+                "owner": owner,
+                "sides_to_capture": sides_to_capture
+            }
+        if input_char == 0:
+            return __constructor(0, 'empty', None)
+        elif input_char == 1:
+            return __constructor(1, 'attacker', 0, 2)
+        elif input_char == 2:
+            return __constructor(2, 'defender', 1, 2)
+        elif input_char == 3:
+            return __constructor(3, 'king', 1, 4)
+        elif input_char == 4:
+            return __constructor(4, 'throne', None)
+        elif input_char == 5:
+            return __constructor(5, 'throned_king', 1, 4)
+        else:
+            raise Exception('bad char input')
 
     def generate_child_node(self, move_start, move_end):
         def check_capture(moving_piece, adjacent_square, bounding_square):
@@ -242,7 +243,7 @@ game_state = GameState(**init_game_state)
 # pprint([(child_node.previous_moves, child_node.get_best_move().evaluation) for child_node in game_state.child_nodes])
 # pprint([(child_node.previous_moves, child_node.evaluation) for child_node in game_state.child_nodes])
 # game_state.get_best_move()
-# pprint(vars(game_state.get_best_move()))
+pprint(vars(game_state.get_best_move()))
 # print(game_state.get_best_move().previous_moves[-1])
 # print(str([(node.previous_moves[-1], node.evaluation) for node in game_state.child_nodes]))
 # print(str(game_state.get_best_move()))
