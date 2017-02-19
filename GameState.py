@@ -199,7 +199,9 @@ class GameState:
     def set_child_node(self, move):
         """
         binds self.child_node to the move(Tuple) in question. This should probably
-        be converted to a getter / setter
+        be converted to a getter / setter. Possibly there should only be a ref to
+        parent, and the make_move method that the display fn's going to use will
+        rebind.
         """
         try:
             move.active_player
