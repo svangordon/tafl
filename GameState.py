@@ -82,50 +82,8 @@ class GameState:
                     self.generate_child_node(i, k)
         self.evaluation = self.evaluate_position()
 
-    def set_possible_moves(self):
-        def get_moves_in_range(start, end, step):
-            found_moves = []
-            for i in range(start, end, step):
-                if self.board[i]["content"] == 0:
-                    found_moves.append(i)
-                elif self.board[i]["content"] == 4:
-                    continue
-                else:
-                    break
-            return found_moves
-        for coord in range(self.board_size ** 2):
-            if self.board[coord]["owner"] == self.active_player:
-                legal_moves = []
-                # Check row looking to the right if we're not in the last column
-                if (coord + 1) % self.row_size != 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord + 1,
-                        math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
-                        else coord + self.row_size,
-                        1))
-                # Check row looking to the left if we're not in the first column
-                if coord % self.row_size != 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord - 1,
-                        math.floor(coord / self.row_size) * self.row_size - 1,
-                        -1))
-                if coord - self.row_size >= 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord - self.row_size,
-                        -1,
-                        -self.row_size))
-                if coord + self.row_size <= self.board_size ** 2:
-                    legal_moves.extend(get_moves_in_range(
-                        coord + self.row_size,
-                        self.row_size * self.row_size,
-                        self.row_size))
-                if not len(legal_moves) == 0:
-                    self.possible_moves[coord] = legal_moves
-
-    def board_constructor(self, board_layout):
-        return list(map(self.piece_constructor, board_layout))
-
-    def piece_constructor(self, input_char):
+    @staticmethod
+    def piece_constructor(input_char):
         def __constructor(content, name, owner, sides_to_capture=None):
             return { #TODO: make this more pythonic
                 "content": content,
@@ -146,8 +104,47 @@ class GameState:
         elif input_char == 5:
             return __constructor(5, 'throned_king', 1, 4)
         else:
-            print('char == {0}'.format(input_char))
             raise Exception('bad char input')
+
+    def set_possible_moves(self):
+        def get_moves_in_range(start, end, step):
+            found_moves = []
+            for i in range(start, end, step):
+                if self.board[i]["content"] == 0:
+                    found_moves.append(i)
+                elif self.board[i]["content"] == 4:
+                    continue
+                else:
+                    break
+            return found_moves
+        for coord in range(self.row_size ** 2):
+            if self.board[coord]["owner"] == self.active_player:
+                legal_moves = []
+                # Check row looking to the right if we're not in the last column
+                if (coord + 1) % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + 1,
+                        math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
+                        else coord + self.row_size,
+                        1))
+                # Check row looking to the left if we're not in the first column
+                if coord % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - 1,
+                        math.floor(coord / self.row_size) * self.row_size - 1,
+                        -1))
+                if coord - self.row_size >= 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - self.row_size,
+                        -1,
+                        -self.row_size))
+                if coord + self.row_size <= self.row_size ** 2:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + self.row_size,
+                        self.row_size * self.row_size,
+                        self.row_size))
+                if not len(legal_moves) == 0:
+                    self.possible_moves[coord] = legal_moves
 
     def generate_child_node(self, move_start, move_end):
         def check_capture(moving_piece, adjacent_square, bounding_square):
@@ -190,7 +187,7 @@ class GameState:
             new_game_board[move_end + self.row_size] = self.piece_constructor(0)
 
         # Check king position for victory
-        for i in range(self.board_size ** 2):
+        for i in range(self.row_size ** 2):
             if new_game_board[i]["content"] in [3,5]:
                 king_position = i
                 break
