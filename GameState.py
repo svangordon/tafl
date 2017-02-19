@@ -3,32 +3,6 @@ import copy
 import random
 from pprint import pprint
 
-def _board_constructor(board_layout):
-    return list(map(_piece_constructor, board_layout))
-
-def _piece_constructor(input_char):
-    def __constructor(content, name, owner, sides_to_capture=None):
-        return { #TODO: make this more pythonic
-            "content": content,
-            "name": name,
-            "owner": owner,
-            "sides_to_capture": sides_to_capture
-        }
-    if input_char == 0:
-        return __constructor(0, 'empty', None)
-    elif input_char == 1:
-        return __constructor(1, 'attacker', 0, 2)
-    elif input_char == 2:
-        return __constructor(2, 'defender', 1, 2)
-    elif input_char == 3:
-        return __constructor(3, 'king', 1, 4)
-    elif input_char == 4:
-        return __constructor(4, 'throne', None)
-    elif input_char == 5:
-        return __constructor(5, 'throned_king', 1, 4)
-    else:
-        raise Exception('bad char input')
-
 init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
              0, 1, 0, 0, 1, 0, 0, 0, 0,
              0, 3, 1, 0, 2, 1, 0, 0, 0,
@@ -41,7 +15,7 @@ init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
 
 init_game_state = {
     "active_player": 0,
-    "board": [],
+    "board": init_board,
     "ply": 0,
     "previous_moves": [],
     "row_size": 9,
@@ -108,45 +82,37 @@ class GameState:
         else:
             raise Exception('bad char input')
 
-    def set_possible_moves(self):
-        def get_moves_in_range(start, end, step):
-            found_moves = []
-            for i in range(start, end, step):
-                if self.board[i]["content"] == 0:
-                    found_moves.append(i)
-                elif self.board[i]["content"] == 4:
-                    continue
-                else:
-                    break
-            return found_moves
-        for coord in range(self.row_size ** 2):
-            if self.board[coord]["owner"] == self.active_player:
-                legal_moves = []
-                # Check row looking to the right if we're not in the last column
-                if (coord + 1) % self.row_size != 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord + 1,
-                        math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
-                        else coord + self.row_size,
-                        1))
-                # Check row looking to the left if we're not in the first column
-                if coord % self.row_size != 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord - 1,
-                        math.floor(coord / self.row_size) * self.row_size - 1,
-                        -1))
-                if coord - self.row_size >= 0:
-                    legal_moves.extend(get_moves_in_range(
-                        coord - self.row_size,
-                        -1,
-                        -self.row_size))
-                if coord + self.row_size <= self.row_size ** 2:
-                    legal_moves.extend(get_moves_in_range(
-                        coord + self.row_size,
-                        self.row_size * self.row_size,
-                        self.row_size))
-                if not len(legal_moves) == 0:
-                    self.possible_moves[coord] = legal_moves
+    #Positive for attacker, negative for defender
+    def evaluate_position(self):
+        # checking for win / loss should be consolidated in one place
+        if self.status == "defender_wins":
+            return -100
+        if self.status == "attacker_wins":
+            return 100
+        material_balance = 0
+        for piece in self.board:
+            if piece["content"] == 1:
+                material_balance += 1
+            elif piece["content"] == 2:
+                material_balance -= 2
+
+        king_position = None
+        for i in range(len(self.board)):
+            if self.board[i]["content"] in [3, 5]:
+                king_position = i
+        # check to see if defender can escape this turn
+        defender_can_escape = False
+        if king_position - self.row_size < 0 \
+            or king_position % self.row_size == 0 \
+            or (king_position + 1) % self.row_size == 0 \
+            or king_position + self.row_size >= self.row_size ** 2:
+                defender_can_escape = True
+        if defender_can_escape:
+            # print('defender can escape\n')
+            return -100
+        else:
+            # print('defender CANNOT escape\n')
+            return material_balance
 
     def generate_child_node(self, move_start, move_end):
         def check_capture(moving_piece, adjacent_square, bounding_square):
@@ -210,38 +176,6 @@ class GameState:
 
         self.child_nodes.append(GameState(new_active_player, new_game_board, self.ply + 1, new_previous_moves, self.row_size, new_game_status))
 
-    #Positive for attacker, negative for defender
-    def evaluate_position(self):
-        # checking for win / loss should be consolidated in one place
-        if self.status == "defender_wins":
-            return -100
-        if self.status == "attacker_wins":
-            return 100
-        material_balance = 0
-        for piece in self.board:
-            if piece["content"] == 1:
-                material_balance += 1
-            elif piece["content"] == 2:
-                material_balance -= 2
-
-        king_position = None
-        for i in range(len(self.board)):
-            if self.board[i]["content"] in [3, 5]:
-                king_position = i
-        # check to see if defender can escape this turn
-        defender_can_escape = False
-        if king_position - self.row_size < 0 \
-            or king_position % self.row_size == 0 \
-            or (king_position + 1) % self.row_size == 0 \
-            or king_position + self.row_size >= self.row_size ** 2:
-                defender_can_escape = True
-        if defender_can_escape:
-            # print('defender can escape\n')
-            return -100
-        else:
-            # print('defender CANNOT escape\n')
-            return material_balance
-
     def get_best_move(self):
         def evaluate_children(child_nodes):
             best_eval = None
@@ -261,6 +195,46 @@ class GameState:
             return self # has no children or the game is over, so returns self
         else:
             return evaluate_children(self.child_nodes)
+
+    def set_possible_moves(self):
+        def get_moves_in_range(start, end, step):
+            found_moves = []
+            for i in range(start, end, step):
+                if self.board[i]["content"] == 0:
+                    found_moves.append(i)
+                elif self.board[i]["content"] == 4:
+                    continue
+                else:
+                    break
+            return found_moves
+        for coord in range(self.row_size ** 2):
+            if self.board[coord]["owner"] == self.active_player:
+                legal_moves = []
+                # Check row looking to the right if we're not in the last column
+                if (coord + 1) % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + 1,
+                        math.ceil(coord / self.row_size) * self.row_size if coord % self.row_size != 0
+                        else coord + self.row_size,
+                        1))
+                # Check row looking to the left if we're not in the first column
+                if coord % self.row_size != 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - 1,
+                        math.floor(coord / self.row_size) * self.row_size - 1,
+                        -1))
+                if coord - self.row_size >= 0:
+                    legal_moves.extend(get_moves_in_range(
+                        coord - self.row_size,
+                        -1,
+                        -self.row_size))
+                if coord + self.row_size <= self.row_size ** 2:
+                    legal_moves.extend(get_moves_in_range(
+                        coord + self.row_size,
+                        self.row_size * self.row_size,
+                        self.row_size))
+                if not len(legal_moves) == 0:
+                    self.possible_moves[coord] = legal_moves
 
 
 game_state = GameState(**init_game_state)
