@@ -47,6 +47,7 @@ class GameState:
         self.active_player = active_player
         self.board = board
         self.candidate_nodes = []
+        self.child_node = None
         self.current_state = True if previous_moves == [] else False
         self.parent = parent
         self.ply = ply
@@ -195,17 +196,19 @@ class GameState:
                 for k in self.possible_moves[i]:
                     generate_candidate_node(i, k)
 
-    def make_move(self, move):
+    def set_child_node(self, move):
         """
-        rebinds self to the hcilde node representing the move in question.
-        move is a tuple (move_start, move_end)
+        binds self.child_node to the move(Tuple) in question. This should probably
+        be converted to a getter / setter
         """
-        for candidate_node in self.candidate_nodes:
-            if candidate_node.previous_moves[-1] == move:
-                print('making move')
-                self = candidate_node
-                # pprint(vars(self))
-                break
+        try:
+            move.active_player
+            self.child_node = move
+        except AttributeError:
+            for candidate_node in self.candidate_nodes:
+                if candidate_node.previous_moves[-1] == move:
+                    self.child_node = candidate_node
+                    break
 
     def set_possible_moves(self):
         def get_moves_in_range(start, end, step):
@@ -251,7 +254,9 @@ class GameState:
 game_state = GameState(**init_game_state)
 # game_state.best_move
 # game_state.best_move
-pprint(vars(game_state.best_move))
+game_state.set_child_node(game_state.best_move.previous_moves[-1])
+pprint(vars(game_state.child_node))
+# pprint(vars(game_state.best_move))
 # game_state.make_move((27, 18))
 # pprint(game_state.previous_moves)
 # pprint(vars(game_state))
