@@ -64,9 +64,9 @@ class GameState:
         self.active_player = active_player
         try:
             int(board[0])
-            self.board = board
-        except ValueError:
             self.board = self.board_constructor(board)
+        except TypeError:
+            self.board = board
         except IndexError:
             self.board = self.board_constructor(self.default_board)
         self.child_nodes = []
@@ -157,6 +157,7 @@ class GameState:
         elif input_char == 5:
             return __constructor(5, 'throned_king', 1, 4)
         else:
+            print('char == {0}'.format(input_char))
             raise Exception('bad char input')
 
     def generate_child_node(self, move_start, move_end):
@@ -279,7 +280,7 @@ game_state = GameState(**init_game_state)
 # pprint([(child_node.previous_moves, child_node.get_best_move().evaluation) for child_node in game_state.child_nodes])
 # pprint([(child_node.previous_moves, child_node.evaluation) for child_node in game_state.child_nodes])
 # game_state.get_best_move()
-pprint(vars(game_state.get_best_move()))
+# pprint(vars(game_state.get_best_move()))
 # print(game_state.get_best_move().previous_moves[-1])
 # print(str([(node.previous_moves[-1], node.evaluation) for node in game_state.child_nodes]))
 # print(str(game_state.get_best_move()))
