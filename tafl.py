@@ -45,10 +45,6 @@ def piece_constructor(input_char):
 
 def board_constructor(board_layout, board_size=9):
     return list(map(piece_constructor, board_layout))
-    # return {
-    #     "board_size": board_size,
-    #     "board_layout": map(piece_constructor, board_layout)
-    # }
 
 def main(stdscr):
 
