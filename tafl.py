@@ -43,13 +43,13 @@ def main(stdscr):
             window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
         window.refresh()
 
-    stdscr.clear()
-    stdscr.addstr('Welcome to tafl! There will be one computer opponent. Press any key...')
-    game_state = GameState([])
-    computer_opponent = 1
-    stdscr.getch()
-    stdscr.clear()
+    # stdscr.clear()
+    # stdscr.addstr('Welcome to tafl! There will be one computer opponent. Press any key...')
+    # computer_opponent = 1
+    # stdscr.getch()
+    # stdscr.clear()
 
+    game_state = GameState([])
     stdscr.clear()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
     game_screen = stdscr.subwin(10, 9, 1, 1)
@@ -64,13 +64,14 @@ def main(stdscr):
     #     if game_state.active_player == computer_opponent:
     #         make_move(game_state.best_move)
     while True:
-        stdscr.addstr(11,0, str(game_state.active_player))
+        print_board(game_state, game_screen, highlighted_squares)
+        # stdscr.addstr(11,0, str(game_state.active_player))
         game_screen.move(*cursor_loc)
         game_screen.cursyncup()
         c = stdscr.getch()
-        if game_state.active_player == computer_opponent:
-            game_state.set_child_node(game_state.best_move)
-            game_state = game_state.child_node
+        # if game_state.active_player == computer_opponent:
+        #     game_state.set_child_node(game_state.best_move)
+        #     game_state = game_state.child_node
             # stdscr.addstr(12,0, 'new active_player == {0}'.format(game_state.active_player))
             # stdscr.getch()
         # stdscr.addstr(10, 0, str(c))
@@ -110,7 +111,7 @@ def main(stdscr):
                 active_square = None
 
         cursor_loc = game_screen.getyx()
-        print_board(game_state, game_screen, highlighted_squares)
+
         # check for victory / defeat
         if game_state.status == "attacker_wins":
             stdscr.addstr(11, 0, "Attacker wins")
