@@ -59,7 +59,7 @@ def main(stdscr):
     cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))
     active_square = None
     game_display = GameDisplay(window=game_screen, game_state=game_state)
-    game_screen.cursyncup()
+    # game_screen.cursyncup()
 
     while True:
         # print_board(game_state, game_screen, highlighted_squares)

@@ -36,6 +36,7 @@ class GameDisplay():
             #make a move
             self.game_state.set_child_node((self.active_square, square))
             self.game_state = self.game_state.child_node
+            self.active_square = None
             # self.print_board()
             # curses.napms(1500)
             # self.game_state.set_child_node(self.game_state.best_move)
