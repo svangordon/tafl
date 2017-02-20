@@ -11,6 +11,7 @@ class GameDisplay():
         self.active_square = None
         self.highlighted_squares = []
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
         self.window.move(*self.cursor_loc)
         self.window.cursyncup()
 
@@ -67,11 +68,15 @@ class GameDisplay():
 
         for i in range(self.game_state.row_size ** 2):
             attr = []
-            try:
-                if i in self.game_state.possible_moves[self.active_square]:
+            if self.active_square:
+                if i == self.active_square:
+                    attr.append(curses.color_pair(2))
+                elif i in self.game_state.possible_moves[self.active_square]:
                     attr.append(curses.color_pair(1))
-            except KeyError:
-                pass
+            # try:
+            #     if i in self.game_state.possible_moves[self.active_square]:
+            # except KeyError:
+            #     pass
             self.window.addch(math.floor(i / self.game_state.row_size), i % self.game_state.row_size, ord(char_converter(self.game_state.board[i]["content"])), *attr)
         # Really look into this, and if it's the best way to do it
         self.window.move(*self.cursor_loc)
