@@ -11,6 +11,8 @@ class GameDisplay():
         self.active_square = None
         self.highlighted_squares = []
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+        self.window.move(*self.cursor_loc)
+        self.window.cursyncup()
 
     def handle_input(self, c):
         if c == curses.KEY_UP:
