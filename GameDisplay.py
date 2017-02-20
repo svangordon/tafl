@@ -29,11 +29,17 @@ class GameDisplay():
             square = square[0]*self.game_state.row_size + square[1]
         except:
             pass
-        if self.active_square == None and self.game_state.board[square]["owner"] == self.game_state.active_player:
-            self.active_square = square
+        if self.active_square == None:
+            if self.game_state.board[square]["owner"] == self.game_state.active_player:
+                self.active_square = square
         elif square in self.game_state.possible_moves[self.active_square]:
             #make a move
-            pass
+            self.game_state.set_child_node((self.active_square, square))
+            self.game_state = self.game_state.child_node
+            # self.print_board()
+            # curses.napms(1500)
+            # self.game_state.set_child_node(self.game_state.best_move)
+            # self.game_state = self.game_state.child_node
         else:
             self.active_square = None
 
@@ -51,7 +57,7 @@ class GameDisplay():
             elif char == 4:
                 return '_'
             elif char == 5:
-                return '\u0332O'
+                return '0'
             else:
                 raise Exception('bad character')
 
@@ -62,7 +68,7 @@ class GameDisplay():
                     attr.append(curses.color_pair(1))
             except KeyError:
                 pass
-            self.window.addstr(math.floor(i / self.game_state.row_size), i % self.game_state.row_size, char_converter(self.game_state.board[i]["content"]), *attr)
+            self.window.addch(math.floor(i / self.game_state.row_size), i % self.game_state.row_size, ord(char_converter(self.game_state.board[i]["content"])), *attr)
         # Really look into this, and if it's the best way to do it
         self.window.move(*self.cursor_loc)
         self.window.refresh()
