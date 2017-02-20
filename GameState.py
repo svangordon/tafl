@@ -46,7 +46,7 @@ class GameState:
             board = list(map(self.piece_constructor, board))
         self.active_player = active_player
         self.board = board
-        self.candidate_nodes = []
+        self.candidate_nodes = {}
         self.child_node = None
         self.current_state = True if previous_moves == [] else False
         self.parent = parent
@@ -93,7 +93,7 @@ class GameState:
         def evaluate_children(candidate_nodes):
             best_eval = None
             best_node = None
-            for node in [candidate_node.best_move for candidate_node in candidate_nodes]:
+            for node in [candidate_node.best_move for move, candidate_node in candidate_nodes.items()]:
                 if best_eval == None:
                     best_eval = node.evaluation
                     best_node = node
@@ -190,7 +190,8 @@ class GameState:
                 and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
                     new_status = 'attacker_wins'
             new_active_player = (self.active_player + 1) % 2
-            self.candidate_nodes.append(GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self))
+            self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self)
+            # self.candidate_nodes.append(GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self))
         if self.ply < self.max_ply and self.status == 'in-play':
             for i in self.possible_moves:
                 for k in self.possible_moves[i]:
@@ -203,14 +204,18 @@ class GameState:
         parent, and the make_move method that the display fn's going to use will
         rebind.
         """
-        try:
-            move.active_player #check to see if we've gotten a tuple
+        if type(move) == tuple:
+            self.child_node = self.candidate_nodes[move]
+        else:
             self.child_node = move
-        except AttributeError:
-            for candidate_node in self.candidate_nodes:
-                if candidate_node.previous_moves[-1] == move:
-                    self.child_node = candidate_node
-                    break
+        # try:
+        #     move.active_player #check to see if we've gotten a tuple
+        #     self.child_node = move
+        # except AttributeError:
+        #     for move, candidate_node in self.candidate_nodes.items():
+        #         if candidate_node.previous_moves[-1] == move:
+        #             self.child_node = candidate_node
+        #             break
         self.child_node.ply = 0
         self.child_node.set_candidate_nodes()
 
