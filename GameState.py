@@ -191,11 +191,15 @@ class GameState:
                     new_status = 'attacker_wins'
             new_active_player = (self.active_player + 1) % 2
             self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self)
-            # self.candidate_nodes.append(GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self))
         if self.ply < self.max_ply and self.status == 'in-play':
-            for i in self.possible_moves:
-                for k in self.possible_moves[i]:
-                    generate_candidate_node(i, k)
+            if not self.candidate_nodes:
+                for i in self.possible_moves:
+                    for k in self.possible_moves[i]:
+                        generate_candidate_node(i, k)
+            else:
+                for move, candidate_node in self.candidate_nodes.items():
+                    candidate_node.ply = self.ply + 1
+                    candidate_node.set_candidate_nodes()
 
     def set_child_node(self, move):
         """
@@ -208,14 +212,6 @@ class GameState:
             self.child_node = self.candidate_nodes[move]
         else:
             self.child_node = move
-        # try:
-        #     move.active_player #check to see if we've gotten a tuple
-        #     self.child_node = move
-        # except AttributeError:
-        #     for move, candidate_node in self.candidate_nodes.items():
-        #         if candidate_node.previous_moves[-1] == move:
-        #             self.child_node = candidate_node
-        #             break
         self.child_node.ply = 0
         self.child_node.set_candidate_nodes()
 
