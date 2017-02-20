@@ -253,11 +253,11 @@ class GameState:
                     self.possible_moves[coord] = legal_moves
 
 
-game_state = GameState(**init_game_state)
+# game_state = GameState(**init_game_state)
 # game_state.best_move
 # game_state.best_move
-game_state.set_child_node(game_state.best_move.previous_moves[-1])
-pprint(vars(game_state.child_node))
+# game_state.set_child_node(game_state.best_move.previous_moves[-1])
+# pprint(vars(game_state.child_node))
 # pprint(vars(game_state.best_move))
 # game_state.make_move((27, 18))
 # pprint(game_state.previous_moves)

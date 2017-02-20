@@ -16,7 +16,7 @@ import copy
 import curses
 from curses import wrapper
 
-curses.initscr()
+# curses.initscr()
 # curses.start_color()
 # curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
 
