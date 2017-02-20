@@ -182,13 +182,13 @@ class GameState:
                 or king_position % self.row_size == 0 \
                 or (king_position + 1) % self.row_size == 0:
                     new_status = 'defender_wins'
-                    #: in the process of debugging why it thinks 35, 34 kills the king
-            # print('king_position == {0}'.format(king_position))
-            if (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
+            elif (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
                 and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
                 and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
                 and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
                     new_status = 'attacker_wins'
+            else:
+                new_status = 'in-play'
             new_active_player = (self.active_player + 1) % 2
             self.candidate_nodes.append(GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self))
         if self.ply < self.max_ply and self.status == 'in-play':
