@@ -93,17 +93,15 @@ class GameState:
         def evaluate_children(candidate_nodes):
             best_eval = None
             best_node = None
-            for node in [candidate_node.best_move for move, candidate_node in candidate_nodes.items()]:
-                if best_eval == None:
-                    best_eval = node.evaluation
-                    best_node = node
-                elif self.active_player == 0 and node.evaluation > best_eval:
-                    best_eval = node.evaluation
-                    best_node = node
-                elif self.active_player == 1 and node.evaluation < best_eval:
-                    best_eval = node.evaluation
-                    best_node = node
-            return best_node
+            # for node in [(move, candidate_node.best_move) for move, candidate_node in candidate_nodes.items()]:
+            for move, candidate_node in candidate_nodes.items():
+                candidate_best_move = candidate_node.best_move
+                if best_eval == None \
+                    or self.active_player == 0 and candidate_best_move.evaluation > best_eval \
+                    or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
+                        best_eval = candidate_best_move.evaluation
+                        best_node = move
+            return self.candidate_nodes[best_node]
         if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
             return self # has no children or the game is over, so returns self
         else:
@@ -190,6 +188,7 @@ class GameState:
                 and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
                     new_status = 'attacker_wins'
             new_active_player = (self.active_player + 1) % 2
+            # print('active_player ==', self.active_player, ' new_active_player ==', new_active_player)
             self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self)
         if self.ply < self.max_ply and self.status == 'in-play':
             if not self.candidate_nodes:
@@ -256,6 +255,9 @@ class GameState:
                     self.possible_moves[coord] = legal_moves
 
 
+game_state = GameState([])
+print("{0} {1} {2}".format(game_state.active_player, game_state.best_move.active_player, game_state.best_move.best_move.active_player))
+pprint(vars(game_state.best_move))
 # game_state = GameState(**init_game_state)
 # pprint(vars(game_state))
 # game_state.best_move

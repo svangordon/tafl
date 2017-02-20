@@ -53,7 +53,8 @@ def main(stdscr):
     game_state = GameState([])
     stdscr.clear()
     # curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
-    game_screen = stdscr.subwin(10, 9, 1, 1)
+    # game_screen = stdscr.subwin(10, 9, 1, 1)
+    game_screen = stdscr.subwin(0, 0, 1, 1)
     highlighted_squares = []
     print_board(game_state, game_screen)
     cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))

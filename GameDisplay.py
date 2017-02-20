@@ -3,9 +3,9 @@ import curses
 
 class GameDisplay():
 
-    def __init__(self, window, game_state):
+    def __init__(self, window, game_state, computer_opponent=True):
         self.window = window
-        # self.players = players
+        self.computer_opponent = computer_opponent
         self.game_state = game_state
         self.cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))
         self.active_square = None
@@ -37,10 +37,13 @@ class GameDisplay():
             self.game_state.set_child_node((self.active_square, square))
             self.game_state = self.game_state.child_node
             self.active_square = None
-            # self.print_board()
-            # curses.napms(1500)
-            # self.game_state.set_child_node(self.game_state.best_move)
-            # self.game_state = self.game_state.child_node
+            self.window.addstr(11,0,str(self.game_state) + str(self.game_state.active_player))
+            if self.computer_opponent:
+                self.print_board()
+                curses.napms(1500)
+                self.game_state.set_child_node(self.game_state.best_move)
+                self.game_state = self.game_state.child_node
+                self.window.addstr(12,0,str(self.game_state) + str(self.game_state.active_player))
         else:
             self.active_square = None
 
