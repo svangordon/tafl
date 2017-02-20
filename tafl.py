@@ -44,6 +44,7 @@ def main(stdscr):
             if i in highlighted_squares:
                 attr.append(curses.color_pair(1))
             window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
+        window.refresh()
 
     # clear screen
     # stdscr.nodelay(True)
@@ -70,6 +71,8 @@ def main(stdscr):
         game_screen.move(*cursor_loc)
         game_screen.cursyncup()
         c = stdscr.getch()
+        stdscr.addstr(10, 0, str(c))
+        game_screen.move(*cursor_loc)
         ####
         # Handle direction keys
         ####
