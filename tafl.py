@@ -16,6 +16,7 @@ import copy
 import curses
 from curses import wrapper
 from GameState import GameState
+from GameDisplay import GameDisplay
 
 def main(stdscr):
     def print_board(game_state, window, highlighted_squares=[]):
@@ -51,76 +52,71 @@ def main(stdscr):
 
     game_state = GameState([])
     stdscr.clear()
-    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+    # curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
     game_screen = stdscr.subwin(10, 9, 1, 1)
     highlighted_squares = []
     print_board(game_state, game_screen)
     cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))
     active_square = None
+    game_display = GameDisplay(window=game_screen, game_state=game_state)
+    game_screen.cursyncup()
 
-    # def make_move(move):
-    #     game_state.set_child_node(move)
-    #     game_state = game_state.child_node
-    #     if game_state.active_player == computer_opponent:
-    #         make_move(game_state.best_move)
     while True:
-        print_board(game_state, game_screen, highlighted_squares)
+        # print_board(game_state, game_screen, highlighted_squares)
         # stdscr.addstr(11,0, str(game_state.active_player))
-        game_screen.move(*cursor_loc)
-        game_screen.cursyncup()
-        c = stdscr.getch()
-        # if game_state.active_player == computer_opponent:
-        #     game_state.set_child_node(game_state.best_move)
-        #     game_state = game_state.child_node
-            # stdscr.addstr(12,0, 'new active_player == {0}'.format(game_state.active_player))
-            # stdscr.getch()
-        # stdscr.addstr(10, 0, str(c))
         # game_screen.move(*cursor_loc)
-        ####
-        # Handle direction keys
-        ####
-        if c == curses.KEY_UP:
-            game_screen.move(max(0, game_screen.getyx()[0] - 1), game_screen.getyx()[1])
-        elif c == curses.KEY_RIGHT:
-            game_screen.move(game_screen.getyx()[0], min(game_state.row_size - 1, game_screen.getyx()[1] + 1))
-        elif c == curses.KEY_DOWN:
-            game_screen.move(min(game_state.row_size - 1, game_screen.getyx()[0] + 1), game_screen.getyx()[1])
-        elif c == curses.KEY_LEFT:
-            game_screen.move(game_screen.getyx()[0], max(0, game_screen.getyx()[1] - 1))
-
-        ####
-        # Space key to select
-        ####
-        elif c == ord(' '):
-            selected_square = game_screen.getyx()[0]*game_state.row_size + game_screen.getyx()[1]
-            if active_square == None:
-                if game_state.board[selected_square]["owner"] == game_state.active_player:
-                    active_square = selected_square
-                    highlighted_squares = game_state.possible_moves[selected_square]
-                    # stdscr.addstr(10,0, ','.join(map(str, highlighted_squares)))
-            elif selected_square in highlighted_squares:
-                # complete move
-                highlighted_squares = []
-                # game_state = complete_move(game_state, active_square, selected_square)
-                game_state.set_child_node((active_square, selected_square))
-                game_state = game_state.child_node
-                # make_move((active_square, selected_square))
-                active_square = None
-            else:
-                highlighted_squares = []
-                active_square = None
-
-        cursor_loc = game_screen.getyx()
-
-        # check for victory / defeat
-        if game_state.status == "attacker_wins":
-            stdscr.addstr(11, 0, "Attacker wins")
-            stdscr.getch()
-            return
-        elif game_state.status == "defender_wins":
-            stdscr.addstr(11, 0, "Defender wins")
-            stdscr.getch()
-            return
+        game_display.print_board()
+        c = stdscr.getch()
+        # # if game_state.active_player == computer_opponent:
+        # #     game_state.set_child_node(game_state.best_move)
+        # #     game_state = game_state.child_node
+        #     # stdscr.addstr(12,0, 'new active_player == {0}'.format(game_state.active_player))
+        #     # stdscr.getch()
+        # # stdscr.addstr(10, 0, str(c))
+        # # game_screen.move(*cursor_loc)
+        # ####
+        # # Handle direction keys
+        # ####
+        # if c == curses.KEY_UP:
+        #     cursor_loc = (max(0, cursor_loc[0] - 1), cursor_loc[1])
+        # elif c == curses.KEY_RIGHT:
+        #     cursor_loc = (cursor_loc[0], min(game_state.row_size - 1, cursor_loc[1] + 1))
+        # elif c == curses.KEY_DOWN:
+        #     cursor_loc = (min(game_state.row_size - 1, cursor_loc[0] + 1), cursor_loc[1])
+        # elif c == curses.KEY_LEFT:
+        #     cursor_loc = (cursor_loc[0], max(0, cursor_loc[1] - 1))
+        #
+        # ####
+        # # Space key to select
+        # ####
+        # elif c == ord(' '):
+        #     selected_square = cursor_loc[0]*game_state.row_size + cursor_loc[1]
+        #     if active_square == None:
+        #         if game_state.board[selected_square]["owner"] == game_state.active_player:
+        #             active_square = selected_square
+        #             highlighted_squares = game_state.possible_moves[selected_square]
+        #             # stdscr.addstr(10,0, ','.join(map(str, highlighted_squares)))
+        #     elif selected_square in highlighted_squares:
+        #         # complete move
+        #         highlighted_squares = []
+        #         # game_state = complete_move(game_state, active_square, selected_square)
+        #         game_state.set_child_node((active_square, selected_square))
+        #         game_state = game_state.child_node
+        #         # make_move((active_square, selected_square))
+        #         active_square = None
+        #     else:
+        #         highlighted_squares = []
+        #         active_square = None
+        #
+        # # check for victory / defeat
+        # if game_state.status == "attacker_wins":
+        #     stdscr.addstr(11, 0, "Attacker wins")
+        #     stdscr.getch()
+        #     return
+        # elif game_state.status == "defender_wins":
+        #     stdscr.addstr(11, 0, "Defender wins")
+        #     stdscr.getch()
+        #     return
 
 
 wrapper(main)
