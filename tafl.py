@@ -39,34 +39,19 @@ def main(stdscr):
             else:
                 raise Exception('bad character')
 
-        # i = 0
-        # for char in [char_converter(char["content"]) for char in game_state.board]:
-            # window.addstr(math.floor(i / board_size), i % board_size, char_converter(game_state["board"][i]), *attr)
-        # window.addstr('subWindow')
         for i in range(game_state.row_size ** 2):
             attr = []
             if i in highlighted_squares:
                 attr.append(curses.color_pair(1))
-            # window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
-            # window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, '.')
-            # window.addstr(math.floor(i / game), i % game_state.row_size, '.')
-            window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, '.')
-            # k = 1 if i == 1 else 2
-            # try:
-            # window.addstr(type(int(math.floor(i / game_state.row_size))))
-            # except
-            # window.addstr(k, i % game_state.row_size, '.')
-        # window.addstr('hi')
+            window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
 
     # clear screen
     # stdscr.nodelay(True)
     stdscr.clear()
-    # stdscr.addstr("wasdfasdf")
     # # Init color pairs
-    # curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
     #
-    game_screen = stdscr.subwin(10, 10, 1, 1)
-    # game_screen.addstr('adfsdfsdf')
+    game_screen = stdscr.subwin(10, 9, 1, 1)
     highlighted_squares = []
 
     game_state = GameState([])
