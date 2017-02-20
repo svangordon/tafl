@@ -43,26 +43,38 @@ def main(stdscr):
             window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
         window.refresh()
 
-    def make_move(move_start, move_end):
-        game_state.set_child_node((move_start, move_end))
-        game_state = game_state.child_node
+    stdscr.clear()
+    stdscr.addstr('Welcome to tafl! There will be one computer opponent. Press any key...')
+    game_state = GameState([])
+    computer_opponent = 1
+    stdscr.getch()
+    stdscr.clear()
 
     stdscr.clear()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
     game_screen = stdscr.subwin(10, 9, 1, 1)
     highlighted_squares = []
-    game_state = GameState([])
     print_board(game_state, game_screen)
     cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))
     active_square = None
 
+    # def make_move(move):
+    #     game_state.set_child_node(move)
+    #     game_state = game_state.child_node
+    #     if game_state.active_player == computer_opponent:
+    #         make_move(game_state.best_move)
     while True:
-        stdscr.addstr(11,0, str(game_state))
+        stdscr.addstr(11,0, str(game_state.active_player))
         game_screen.move(*cursor_loc)
         game_screen.cursyncup()
         c = stdscr.getch()
-        stdscr.addstr(10, 0, str(c))
-        game_screen.move(*cursor_loc)
+        if game_state.active_player == computer_opponent:
+            game_state.set_child_node(game_state.best_move)
+            game_state = game_state.child_node
+            # stdscr.addstr(12,0, 'new active_player == {0}'.format(game_state.active_player))
+            # stdscr.getch()
+        # stdscr.addstr(10, 0, str(c))
+        # game_screen.move(*cursor_loc)
         ####
         # Handle direction keys
         ####
@@ -78,7 +90,7 @@ def main(stdscr):
         ####
         # Space key to select
         ####
-        if c == ord(' '):
+        elif c == ord(' '):
             selected_square = game_screen.getyx()[0]*game_state.row_size + game_screen.getyx()[1]
             if active_square == None:
                 if game_state.board[selected_square]["owner"] == game_state.active_player:
@@ -91,6 +103,7 @@ def main(stdscr):
                 # game_state = complete_move(game_state, active_square, selected_square)
                 game_state.set_child_node((active_square, selected_square))
                 game_state = game_state.child_node
+                # make_move((active_square, selected_square))
                 active_square = None
             else:
                 highlighted_squares = []
