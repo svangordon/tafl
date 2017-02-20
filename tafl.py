@@ -16,9 +16,6 @@ import copy
 import curses
 from curses import wrapper
 from GameState import GameState
-# curses.initscr()
-# curses.start_color()
-# curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
 
 def main(stdscr):
     def print_board(game_state, window, highlighted_squares=[]):
@@ -46,27 +43,19 @@ def main(stdscr):
             window.addstr(math.floor(i / game_state.row_size), i % game_state.row_size, char_converter(game_state.board[i]["content"]), *attr)
         window.refresh()
 
-    # clear screen
-    # stdscr.nodelay(True)
+    def make_move(move_start, move_end):
+        game_state.set_child_node((move_start, move_end))
+        game_state = game_state.child_node
+
     stdscr.clear()
-    # # Init color pairs
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
-    #
     game_screen = stdscr.subwin(10, 9, 1, 1)
     highlighted_squares = []
-
     game_state = GameState([])
-
     print_board(game_state, game_screen)
-
     cursor_loc = (math.floor(game_state.row_size / 2), math.floor(game_state.row_size / 2))
-
     active_square = None
 
-    # # . 1 .
-    # # 4 . 2
-    # # . 3 .
-    #
     while True:
         stdscr.addstr(11,0, str(game_state))
         game_screen.move(*cursor_loc)
@@ -107,6 +96,8 @@ def main(stdscr):
                 highlighted_squares = []
                 active_square = None
 
+        cursor_loc = game_screen.getyx()
+        print_board(game_state, game_screen, highlighted_squares)
         # check for victory / defeat
         if game_state.status == "attacker_wins":
             stdscr.addstr(11, 0, "Attacker wins")
@@ -117,8 +108,5 @@ def main(stdscr):
             stdscr.getch()
             return
 
-        cursor_loc = game_screen.getyx()
-
-        print_board(game_state, game_screen, highlighted_squares)
 
 wrapper(main)
