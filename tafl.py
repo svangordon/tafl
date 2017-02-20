@@ -21,7 +21,7 @@ from GameState import GameState
 # curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
 
 def main(stdscr):
-    def print_board(game_state, window):
+    def print_board(game_state, window, highlighted_squares=[]):
         def char_converter(char):
             # char = char["content"] #TODO: char converter can be moved to piece_constructor
             if char == 0:
@@ -90,9 +90,8 @@ def main(stdscr):
             if active_square == None:
                 if game_state.board[selected_square]["owner"] == game_state.active_player:
                     active_square = selected_square
-                    pos_mov = ''.join(map(int, game_state.possible_moves[selected_square]))
                     highlighted_squares = game_state.possible_moves[selected_square]
-                    stdscr.addstr(10,0,pos_mov)
+                    # stdscr.addstr(10,0, ','.join(map(str, highlighted_squares)))
             elif selected_square in highlighted_squares:
                 # complete move
                 highlighted_squares = []
@@ -116,6 +115,6 @@ def main(stdscr):
 
         cursor_loc = game_screen.getyx()
 
-        print_board(game_state, game_screen)
+        print_board(game_state, game_screen, highlighted_squares)
 
 wrapper(main)
