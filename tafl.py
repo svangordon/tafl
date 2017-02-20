@@ -68,6 +68,7 @@ def main(stdscr):
     # # . 3 .
     #
     while True:
+        stdscr.addstr(11,0, str(game_state))
         game_screen.move(*cursor_loc)
         game_screen.cursyncup()
         c = stdscr.getch()

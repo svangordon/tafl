@@ -133,6 +133,8 @@ class GameState:
         else:
             raise Exception('bad char input')
 
+    #TODO: handle the case that we've made a move, and want to look further down
+    # the child nodes instead of regenerating them all.
     def set_candidate_nodes(self):
         def generate_candidate_node(move_start, move_end):
             def check_capture(moving_piece, adjacent_square, bounding_square):
@@ -187,8 +189,6 @@ class GameState:
                 and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
                 and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
                     new_status = 'attacker_wins'
-            else:
-                new_status = 'in-play'
             new_active_player = (self.active_player + 1) % 2
             self.candidate_nodes.append(GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self))
         if self.ply < self.max_ply and self.status == 'in-play':
@@ -204,13 +204,15 @@ class GameState:
         rebind.
         """
         try:
-            move.active_player
+            move.active_player #check to see if we've gotten a tuple
             self.child_node = move
         except AttributeError:
             for candidate_node in self.candidate_nodes:
                 if candidate_node.previous_moves[-1] == move:
                     self.child_node = candidate_node
                     break
+        self.child_node.ply = 0
+        self.child_node.set_candidate_nodes()
 
     def set_possible_moves(self):
         def get_moves_in_range(start, end, step):
