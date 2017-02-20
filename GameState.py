@@ -2,6 +2,7 @@ import math
 import copy
 import random
 from pprint import pprint
+from EvaluationEngine import evaluate_position
 
 init_board = [4, 0, 0, 0, 1, 1, 0, 0, 4,
              0, 1, 0, 0, 1, 0, 0, 0, 0,
@@ -34,7 +35,7 @@ class GameState:
                  0, 0, 0, 0, 2, 0, 0, 0, 0,
                  0, 0, 0, 0, 1, 0, 0, 0, 0,
                  4, 0, 0, 1, 1, 1, 0, 0, 4]
-    def __init__(self, board, active_player=0, ply=0, previous_moves=[], row_size=9, status="in-play", parent=None):
+    def __init__(self, board, active_player=0, ply=0, previous_moves=[], row_size=9, parent=None):
         # Polymorphically set the board
         try:
             board[0]
@@ -48,45 +49,49 @@ class GameState:
         self.board = board
         self.candidate_nodes = {}
         self.child_node = None
-        self.current_state = True if previous_moves == [] else False
         self.parent = parent
         self.ply = ply
         self.possible_moves = {}
         self.previous_moves = previous_moves
         self.row_size = row_size
-        self.status = status
+        self.evaluation = evaluate_position(board=self.board, row_size=self.row_size)
+        if self.evaluation == 100:
+            self.status = 'attacker_wins'
+        elif self.evaluation == -100:
+            self.status = 'defender_wins'
+        else:
+            self.status = 'in-play'
         self.set_possible_moves()
         self.set_candidate_nodes()
-
-    @property
-    def evaluation(self):
-        # checking for win / loss should be consolidated in one place
-        if self.status == "defender_wins":
-            return -100
-        if self.status == "attacker_wins":
-            return 100
-        material_balance = 0
-        for piece in self.board:
-            if piece["content"] == 1:
-                material_balance += 1
-            elif piece["content"] == 2:
-                material_balance -= 2
-
-        king_position = None
-        for i in range(len(self.board)):
-            if self.board[i]["content"] in [3, 5]:
-                king_position = i
-        # check to see if defender can escape this turn
-        defender_can_escape = False
-        if king_position - self.row_size < 0 \
-            or king_position % self.row_size == 0 \
-            or (king_position + 1) % self.row_size == 0 \
-            or king_position + self.row_size >= self.row_size ** 2:
-                defender_can_escape = True
-        if defender_can_escape:
-            return -100
-        else:
-            return material_balance
+    # @property
+    # def evaluation(self):
+    #     # checking for win / loss should be consolidated in one place
+    #     if self.status == "defender_wins":
+    #         return -100
+    #     if self.status == "attacker_wins":
+    #         return 100
+    #     material_balance = 0
+    #     for piece in self.board:
+    #         if piece["content"] == 1:
+    #             material_balance += 1
+    #         elif piece["content"] == 2:
+    #             material_balance -= 2
+    #
+    #     king_position = None
+    #     for i in range(len(self.board)):
+    #         if self.board[i]["content"] in [3, 5]:
+    #             king_position = i
+    #     # check to see if defender can escape this turn
+    #     defender_can_escape = False
+    #     if king_position - self.row_size < 0 \
+    #         or king_position % self.row_size == 0 \
+    #         or (king_position + 1) % self.row_size == 0 \
+    #         or king_position + self.row_size >= self.row_size ** 2:
+    #             defender_can_escape = True
+    #     if defender_can_escape:
+    #         return -100
+    #     else:
+    #         return material_balance
 
     @property
     def best_move(self):
@@ -146,7 +151,7 @@ class GameState:
                             or bounding_square["content"] == 4)
             moving_piece = self.board[move_start]
             new_game_board = copy.deepcopy(self.board)
-            new_status = self.status
+            # new_status = self.status
             new_active_player = None
             new_previous_moves = copy.copy(self.previous_moves)
             new_previous_moves.append((move_start, move_end))
@@ -177,19 +182,19 @@ class GameState:
                 if new_game_board[i]["content"] in [3,5]:
                     king_position = i
                     break
-            if king_position in range(0, self.row_size) \
-                or king_position in range(self.row_size * (self.row_size - 1), self.row_size ** 2) \
-                or king_position % self.row_size == 0 \
-                or (king_position + 1) % self.row_size == 0:
-                    new_status = 'defender_wins'
-            elif (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
-                and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
-                and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
-                and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
-                    new_status = 'attacker_wins'
+            # if king_position in range(0, self.row_size) \
+            #     or king_position in range(self.row_size * (self.row_size - 1), self.row_size ** 2) \
+            #     or king_position % self.row_size == 0 \
+            #     or (king_position + 1) % self.row_size == 0:
+            #         new_status = 'defender_wins'
+            # elif (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
+            #     and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
+            #     and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
+            #     and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
+            #         new_status = 'attacker_wins'
             new_active_player = (self.active_player + 1) % 2
             # print('active_player ==', self.active_player, ' new_active_player ==', new_active_player)
-            self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, status=new_status, parent=self)
+            self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, parent=self)
         if self.ply < self.max_ply and self.status == 'in-play':
             if not self.candidate_nodes:
                 for i in self.possible_moves:
