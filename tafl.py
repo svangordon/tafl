@@ -67,6 +67,7 @@ def main(stdscr):
         # game_screen.move(*cursor_loc)
         game_display.print_board()
         c = stdscr.getch()
+        game_display.handle_input(c)
         # # if game_state.active_player == computer_opponent:
         # #     game_state.set_child_node(game_state.best_move)
         # #     game_state = game_state.child_node
