@@ -260,9 +260,9 @@ class GameState:
                     self.possible_moves[coord] = legal_moves
 
 
-game_state = GameState([])
-print("{0} {1} {2}".format(game_state.active_player, game_state.best_move.active_player, game_state.best_move.best_move.active_player))
-pprint(vars(game_state.best_move))
+# game_state = GameState([])
+# print("{0} {1} {2}".format(game_state.active_player, game_state.best_move.active_player, game_state.best_move.best_move.active_player))
+# pprint(vars(game_state.best_move))
 # game_state = GameState(**init_game_state)
 # pprint(vars(game_state))
 # game_state.best_move

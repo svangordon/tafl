@@ -12,6 +12,8 @@ class GameDisplay():
         self.highlighted_squares = []
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_WHITE)
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
+        # previous_move
+        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
         self.window.move(*self.cursor_loc)
         self.window.cursyncup()
         if self.computer_opponent == self.game_state.active_player:
@@ -72,17 +74,23 @@ class GameDisplay():
                 raise Exception('bad character')
 
         for i in range(self.game_state.row_size ** 2):
-            attr = []
+            attr = 0
             if self.active_square:
                 if i == self.active_square:
-                    attr.append(curses.color_pair(2))
+                    attr = curses.color_pair(2)
+                    # attr.append(curses.color_pair(2))
                 elif i in self.game_state.possible_moves[self.active_square]:
-                    attr.append(curses.color_pair(1))
-            # try:
-            #     if i in self.game_state.possible_moves[self.active_square]:
-            # except KeyError:
-            #     pass
-            self.window.addch(math.floor(i / self.game_state.row_size), i % self.game_state.row_size, ord(char_converter(self.game_state.board[i]["content"])), *attr)
+                    attr = curses.color_pair(1)
+                    # attr.append(curses.color_pair(1))
+            # raise
+            try:
+                if i in self.game_state.previous_moves[-1]:
+                    # attr.append(curses.color_pair(3))
+                    attr = curses.color_pair(3)
+            except IndexError:
+                pass
+
+            self.window.addch(math.floor(i / self.game_state.row_size), i % self.game_state.row_size, ord(char_converter(self.game_state.board[i]["content"])), attr)
         # Really look into this, and if it's the best way to do it
         self.window.move(*self.cursor_loc)
         self.window.refresh()
