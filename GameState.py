@@ -35,7 +35,7 @@ class GameState:
                  0, 0, 0, 0, 2, 0, 0, 0, 0,
                  0, 0, 0, 0, 1, 0, 0, 0, 0,
                  4, 0, 0, 1, 1, 1, 0, 0, 4]
-    def __init__(self, board, active_player=0, ply=0, previous_moves=[], row_size=9, parent=None):
+    def __init__(self, board, active_player=0, ply=0, previous_moves=[], row_size=9, parent=None, status="in-play", computer_player=True):
         # Polymorphically set the board
         try:
             board[0]
@@ -49,56 +49,30 @@ class GameState:
         self.board = board
         self.candidate_nodes = {}
         self.child_node = None
+        self.computer_player = computer_player
         self.parent = parent
         self.ply = ply
         self.possible_moves = {}
         self.previous_moves = previous_moves
         self.row_size = row_size
-        self.evaluation = evaluate_position(board=self.board, row_size=self.row_size)
-        if self.evaluation == 100:
-            self.status = 'attacker_wins'
-        elif self.evaluation == -100:
-            self.status = 'defender_wins'
-        else:
-            self.status = 'in-play'
+        self.status = status
         self.set_possible_moves()
-        self.set_candidate_nodes()
-    # @property
-    # def evaluation(self):
-    #     # checking for win / loss should be consolidated in one place
-    #     if self.status == "defender_wins":
-    #         return -100
-    #     if self.status == "attacker_wins":
-    #         return 100
-    #     material_balance = 0
-    #     for piece in self.board:
-    #         if piece["content"] == 1:
-    #             material_balance += 1
-    #         elif piece["content"] == 2:
-    #             material_balance -= 2
-    #
-    #     king_position = None
-    #     for i in range(len(self.board)):
-    #         if self.board[i]["content"] in [3, 5]:
-    #             king_position = i
-    #     # check to see if defender can escape this turn
-    #     defender_can_escape = False
-    #     if king_position - self.row_size < 0 \
-    #         or king_position % self.row_size == 0 \
-    #         or (king_position + 1) % self.row_size == 0 \
-    #         or king_position + self.row_size >= self.row_size ** 2:
-    #             defender_can_escape = True
-    #     if defender_can_escape:
-    #         return -100
-    #     else:
-    #         return material_balance
+        if self.computer_player:
+            self.set_candidate_nodes()
+            self.evaluation = evaluate_position(board=self.board, row_size=self.row_size)
+            self.best_move = self.get_best_move()
+        # if self.evaluation == 100:
+        #     self.status = 'attacker_wins'
+        # elif self.evaluation == -100:
+        #     self.status = 'defender_wins'
+        # else:
+        #     self.status = 'in-play'
 
-    @property
-    def best_move(self):
+    # @property
+    def get_best_move(self):
         def evaluate_children(candidate_nodes):
             best_eval = None
             best_node = None
-            # for node in [(move, candidate_node.best_move) for move, candidate_node in candidate_nodes.items()]:
             for move, candidate_node in candidate_nodes.items():
                 candidate_best_move = candidate_node.best_move
                 if best_eval == None \
@@ -106,11 +80,31 @@ class GameState:
                     or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
                         best_eval = candidate_best_move.evaluation
                         best_node = move
+            self._best_move = self.candidate_nodes[best_node]
             return self.candidate_nodes[best_node]
         if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
             return self # has no children or the game is over, so returns self
         else:
             return evaluate_children(self.candidate_nodes)
+
+    # @property
+    # def best_move(self):
+    #     def evaluate_children(candidate_nodes):
+    #         best_eval = None
+    #         best_node = None
+    #         # for node in [(move, candidate_node.best_move) for move, candidate_node in candidate_nodes.items()]:
+    #         for move, candidate_node in candidate_nodes.items():
+    #             candidate_best_move = candidate_node.best_move
+    #             if best_eval == None \
+    #                 or self.active_player == 0 and candidate_best_move.evaluation > best_eval \
+    #                 or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
+    #                     best_eval = candidate_best_move.evaluation
+    #                     best_node = move
+    #         return self.candidate_nodes[best_node]
+    #     if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
+    #         return self # has no children or the game is over, so returns self
+    #     else:
+    #         return evaluate_children(self.candidate_nodes)
 
     @staticmethod
     def piece_constructor(input_char):
@@ -136,70 +130,70 @@ class GameState:
         else:
             raise Exception('bad char input')
 
+    def generate_candidate_node(self, move_start, move_end):
+        def check_capture(moving_piece, adjacent_square, bounding_square):
+            # TODO: add support for kings, thrones
+            if adjacent_square == None:
+                return False
+            elif adjacent_square["content"] in [1, 2]:
+                return adjacent_square["owner"] != moving_piece["owner"] \
+                    and bounding_square != None \
+                    and (bounding_square["owner"] == moving_piece["owner"] \
+                        or bounding_square["content"] == 4)
+        moving_piece = self.board[move_start]
+        new_game_board = copy.deepcopy(self.board)
+        new_status = self.status
+        new_active_player = None
+        new_previous_moves = copy.copy(self.previous_moves)
+        new_previous_moves.append((move_start, move_end))
+        new_game_board[move_start] = self.piece_constructor(4) if moving_piece["content"] == 5 else self.piece_constructor(0)
+        new_game_board[move_end] = moving_piece if moving_piece["content"] != 5 else self.piece_constructor(3)
+        # check to the left
+        adjacent_square = self.board[move_end - 1] if move_end % self.row_size != 0 else None
+        bounding_square = self.board[move_end - 2] if (move_end - 1) % self.row_size != 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            new_game_board[move_end - 1] = self.piece_constructor(0)
+        # check to the right
+        adjacent_square = self.board[move_end + 1] if (move_end + 1) % self.row_size != 0 else None
+        bounding_square = self.board[move_end + 2] if (move_end + 2) % self.row_size != 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            new_game_board[move_end + 1] = self.piece_constructor(0)
+        # check a row above
+        adjacent_square = self.board[move_end - self.row_size] if (move_end - self.row_size) >= 0 else None
+        bounding_square = self.board[move_end - self.row_size * 2] if (move_end - self.row_size * 2) >= 0 else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            new_game_board[move_end - self.row_size] = self.piece_constructor(0)
+        # check a row below
+        adjacent_square = self.board[move_end + self.row_size] if (move_end + self.row_size) < self.row_size * self.row_size else None
+        bounding_square = self.board[move_end + self.row_size * 2] if (move_end + self.row_size * 2) < self.row_size * self.row_size else None
+        if check_capture(moving_piece, adjacent_square, bounding_square):
+            new_game_board[move_end + self.row_size] = self.piece_constructor(0)
+        # Check king position for victory
+        for i in range(self.row_size ** 2):
+            if new_game_board[i]["content"] in [3,5]:
+                king_position = i
+                break
+        if king_position in range(0, self.row_size) \
+            or king_position in range(self.row_size * (self.row_size - 1), self.row_size ** 2) \
+            or king_position % self.row_size == 0 \
+            or (king_position + 1) % self.row_size == 0:
+                new_status = 'defender_wins'
+        elif (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
+            and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
+            and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
+            and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
+                new_status = 'attacker_wins'
+        new_active_player = (self.active_player + 1) % 2
+        self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, parent=self, status=new_status)
+
     #TODO: handle the case that we've made a move, and want to look further down
     # the child nodes instead of regenerating them all.
     def set_candidate_nodes(self):
-        def generate_candidate_node(move_start, move_end):
-            def check_capture(moving_piece, adjacent_square, bounding_square):
-                # TODO: add support for kings, thrones
-                if adjacent_square == None:
-                    return False
-                elif adjacent_square["content"] in [1, 2]:
-                    return adjacent_square["owner"] != moving_piece["owner"] \
-                        and bounding_square != None \
-                        and (bounding_square["owner"] == moving_piece["owner"] \
-                            or bounding_square["content"] == 4)
-            moving_piece = self.board[move_start]
-            new_game_board = copy.deepcopy(self.board)
-            # new_status = self.status
-            new_active_player = None
-            new_previous_moves = copy.copy(self.previous_moves)
-            new_previous_moves.append((move_start, move_end))
-            new_game_board[move_start] = self.piece_constructor(4) if moving_piece["content"] == 5 else self.piece_constructor(0)
-            new_game_board[move_end] = moving_piece if moving_piece["content"] != 5 else self.piece_constructor(3)
-            # check to the left
-            adjacent_square = self.board[move_end - 1] if move_end % self.row_size != 0 else None
-            bounding_square = self.board[move_end - 2] if (move_end - 1) % self.row_size != 0 else None
-            if check_capture(moving_piece, adjacent_square, bounding_square):
-                new_game_board[move_end - 1] = self.piece_constructor(0)
-            # check to the right
-            adjacent_square = self.board[move_end + 1] if (move_end + 1) % self.row_size != 0 else None
-            bounding_square = self.board[move_end + 2] if (move_end + 2) % self.row_size != 0 else None
-            if check_capture(moving_piece, adjacent_square, bounding_square):
-                new_game_board[move_end + 1] = self.piece_constructor(0)
-            # check a row above
-            adjacent_square = self.board[move_end - self.row_size] if (move_end - self.row_size) >= 0 else None
-            bounding_square = self.board[move_end - self.row_size * 2] if (move_end - self.row_size * 2) >= 0 else None
-            if check_capture(moving_piece, adjacent_square, bounding_square):
-                new_game_board[move_end - self.row_size] = self.piece_constructor(0)
-            # check a row below
-            adjacent_square = self.board[move_end + self.row_size] if (move_end + self.row_size) < self.row_size * self.row_size else None
-            bounding_square = self.board[move_end + self.row_size * 2] if (move_end + self.row_size * 2) < self.row_size * self.row_size else None
-            if check_capture(moving_piece, adjacent_square, bounding_square):
-                new_game_board[move_end + self.row_size] = self.piece_constructor(0)
-            # Check king position for victory
-            for i in range(self.row_size ** 2):
-                if new_game_board[i]["content"] in [3,5]:
-                    king_position = i
-                    break
-            # if king_position in range(0, self.row_size) \
-            #     or king_position in range(self.row_size * (self.row_size - 1), self.row_size ** 2) \
-            #     or king_position % self.row_size == 0 \
-            #     or (king_position + 1) % self.row_size == 0:
-            #         new_status = 'defender_wins'
-            # elif (king_position - self.row_size < 0 or new_game_board[king_position - self.row_size]["content"] in [1, 4]) \
-            #     and ((king_position + 1) % self.row_size == 0 or new_game_board[king_position + 1]["content"] in [1, 4]) \
-            #     and (king_position % self.row_size == 0 or new_game_board[king_position - 1]["content"] in [1, 4]) \
-            #     and (king_position + self.row_size >= self.row_size ** 2 or new_game_board[king_position + self.row_size]["content"] in [1, 4]):
-            #         new_status = 'attacker_wins'
-            new_active_player = (self.active_player + 1) % 2
-            # print('active_player ==', self.active_player, ' new_active_player ==', new_active_player)
-            self.candidate_nodes[(move_start, move_end)] = GameState(board=new_game_board, active_player=new_active_player, ply=self.ply + 1, previous_moves=new_previous_moves, row_size=self.row_size, parent=self)
         if self.ply < self.max_ply and self.status == 'in-play':
             if not self.candidate_nodes:
                 for i in self.possible_moves:
                     for k in self.possible_moves[i]:
-                        generate_candidate_node(i, k)
+                        self.generate_candidate_node(i, k)
             else:
                 for move, candidate_node in self.candidate_nodes.items():
                     candidate_node.ply = self.ply + 1
@@ -212,12 +206,18 @@ class GameState:
         parent, and the make_move method that the display fn's going to use will
         rebind.
         """
-        if type(move) == tuple:
+        if not self.candidate_nodes:
+            if not self.computer_opponent:
+                raise ValueError('trying to set child_node w/o candidate_nodes, and no computer opponent')
+            self.generate_candidate_node(*move)
             self.child_node = self.candidate_nodes[move]
         else:
-            self.child_node = move
-        self.child_node.ply = 0
-        self.child_node.set_candidate_nodes()
+            if type(move) == tuple:
+                self.child_node = self.candidate_nodes[move]
+            else:
+                self.child_node = move
+            self.child_node.ply = 0
+            self.child_node.set_candidate_nodes()
 
     def set_possible_moves(self):
         def get_moves_in_range(start, end, step):

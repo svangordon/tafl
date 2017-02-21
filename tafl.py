@@ -19,9 +19,21 @@ from GameState import GameState
 from GameDisplay import GameDisplay
 
 def main(stdscr):
+    stdscr.clear()
+
+    # # Main Menu
+    # stdscr.addstr("Welcome to tafl, the ancient Norse game of Vikings. \n Computer opponent? y/n")
+    # c = stdscr.getch()
+    # while True:
+    #     if c == ord('y'):
+    #         computer_opponent = True
+    #         break
+    #     elif c == ord('n'):
+    #         computer_opponent = False
+    #         break
+    # stdscr.clear()
 
     game_state = GameState([])
-    stdscr.clear()
     game_screen = stdscr.subwin(10, 9, 1, 1)
     game_display = GameDisplay(window=game_screen, game_state=game_state)
 
