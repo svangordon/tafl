@@ -15,27 +15,22 @@ import math
 import copy
 import curses
 from curses import wrapper
+from Game import Game
 from GameState import GameState
 from GameDisplay import GameDisplay
 
 def main(stdscr):
     stdscr.clear()
 
-    # # Main Menu
-    # stdscr.addstr("Welcome to tafl, the ancient Norse game of Vikings. \n Computer opponent? y/n")
-    # c = stdscr.getch()
-    # while True:
-    #     if c == ord('y'):
-    #         computer_opponent = True
-    #         break
-    #     elif c == ord('n'):
-    #         computer_opponent = False
-    #         break
-    # stdscr.clear()
-
     game_state = GameState([])
+
+    game = Game(game_state)
+
     game_screen = stdscr.subwin(10, 9, 1, 1)
-    game_display = GameDisplay(window=game_screen, game_state=game_state)
+    game_display = GameDisplay(window=game_screen, game=game)
+
+    game.game_display = game_display
+
 
     while True:
         game_display.print_board()
