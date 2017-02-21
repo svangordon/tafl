@@ -3,7 +3,7 @@ import curses
 
 class GameDisplay():
 
-    def __init__(self, window, game_state, computer_opponent=1):
+    def __init__(self, window, game_state, computer_opponent=0):
         self.window = window
         self.computer_opponent = computer_opponent
         self.game_state = game_state

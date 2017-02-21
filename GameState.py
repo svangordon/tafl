@@ -55,14 +55,15 @@ class GameState:
         self.previous_moves = previous_moves
         self.row_size = row_size
         self.evaluation = evaluate_position(board=self.board, row_size=self.row_size)
-        if self.evaluation == 100:
+        if self.evaluation == 1000:
             self.status = 'attacker_wins'
-        elif self.evaluation == -100:
+        elif self.evaluation == -1000:
             self.status = 'defender_wins'
         else:
             self.status = 'in-play'
         self.set_possible_moves()
         self.set_candidate_nodes()
+        self.best_move = self.get_best_move()
     # @property
     # def evaluation(self):
     #     # checking for win / loss should be consolidated in one place
@@ -93,8 +94,8 @@ class GameState:
     #     else:
     #         return material_balance
 
-    @property
-    def best_move(self):
+    # @property
+    def get_best_move(self):
         def evaluate_children(candidate_nodes):
             best_eval = None
             best_node = None
@@ -260,9 +261,9 @@ class GameState:
                     self.possible_moves[coord] = legal_moves
 
 
-game_state = GameState([])
-print("{0} {1} {2}".format(game_state.active_player, game_state.best_move.active_player, game_state.best_move.best_move.active_player))
-pprint(vars(game_state.best_move))
+# game_state = GameState([])
+# print("{0} {1} {2}".format(game_state.active_player, game_state.best_move.active_player, game_state.best_move.best_move.active_player))
+# pprint(vars(game_state.best_move))
 # game_state = GameState(**init_game_state)
 # pprint(vars(game_state))
 # game_state.best_move

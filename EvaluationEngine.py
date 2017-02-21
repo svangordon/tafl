@@ -45,8 +45,8 @@ def evaluate_position(board, row_size=9):
     #   Attackers would like to have each piece in contact with exactly two other attackers
 
     if defender_can_escape:
-        return -100
+        return -1000
     elif defender_captured:
-        return 100
+        return 1000
     else:
         return material_balance + positional_evaluation
