@@ -28,7 +28,7 @@ class Game():
             "active_player": self.game_state.active_player,
             "board": self.game_state.board,
             "possible_moves": self.game_state.possible_moves,
-            "previous_move": (),
+            "previous_move": m,
             "row_size": self.game_state.row_size
         }
 

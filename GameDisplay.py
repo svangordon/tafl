@@ -94,7 +94,7 @@ class GameDisplay():
 
             self.window.addch(math.floor(i / self.game_board["row_size"]), i % self.game_board["row_size"], ord(char_converter(self.game_board["board"][i]["content"])), attr)
 
-        self.window.addstr(9,0,str(self.game_board["active_player"]))
+        # self.window.addstr(9,0,str(self.game_board["active_player"]))
         # Really look into this, and if it's the best way to do it
         self.window.move(*self.cursor_loc)
         self.window.refresh()

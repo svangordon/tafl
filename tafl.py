@@ -26,7 +26,7 @@ def main(stdscr):
 
     game = Game(game_state)
 
-    game_screen = stdscr.subwin(11, 11, 1, 1)
+    game_screen = stdscr.subwin(10, 10, 1, 1)
     game_display = GameDisplay(window=game_screen, game=game)
 
     game.game_display = game_display
