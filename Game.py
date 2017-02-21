@@ -4,10 +4,19 @@ from GameDisplay import GameDisplay
 class Game():
 
     def __init__(self, game_state=GameState([]), game_display=None, players={0: 'human', 1: 'cpu'}):
-        self.game_state = game_state
+        self._game_state = game_state
         self.game_display = game_display
         self.players = players
         self.row_size = game_state.row_size
+        test_node = self.game_state
+
+    @property
+    def game_state(self):
+        def last_child(node):
+            if node.child_node:
+                return last_child(node.child_node)
+            return node
+        return last_child(self._game_state)
 
     def get_board(self):
         """ Return a board suitable for the game_display to show"""
@@ -25,7 +34,7 @@ class Game():
 
     def make_move(self, move):
         self.game_state.set_child_node(move)
-        self.game_state = self.game_state.child_node
+        # self.game_state = self.game_state.child_node
         #TODO: remove the below line
         self.game_display.game_board = self.get_board()
         if self.players[self.game_state.active_player] == 'cpu':

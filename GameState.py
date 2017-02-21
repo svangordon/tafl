@@ -60,7 +60,7 @@ class GameState:
         if self.computer_player:
             self.set_candidate_nodes()
             self.evaluation = evaluate_position(board=self.board, row_size=self.row_size)
-            self.best_move = self.get_best_move()
+            # self.best_move = self.get_best_move()
         # if self.evaluation == 100:
         #     self.status = 'attacker_wins'
         # elif self.evaluation == -100:
@@ -68,31 +68,11 @@ class GameState:
         # else:
         #     self.status = 'in-play'
 
-    # @property
-    def get_best_move(self):
-        def evaluate_children(candidate_nodes):
-            best_eval = None
-            best_node = None
-            for move, candidate_node in candidate_nodes.items():
-                candidate_best_move = candidate_node.best_move
-                if best_eval == None \
-                    or self.active_player == 0 and candidate_best_move.evaluation > best_eval \
-                    or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
-                        best_eval = candidate_best_move.evaluation
-                        best_node = move
-            self._best_move = self.candidate_nodes[best_node]
-            return self.candidate_nodes[best_node]
-        if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
-            return self # has no children or the game is over, so returns self
-        else:
-            return evaluate_children(self.candidate_nodes)
-
-    # @property
-    # def best_move(self):
+    # # @property
+    # def get_best_move(self):
     #     def evaluate_children(candidate_nodes):
     #         best_eval = None
     #         best_node = None
-    #         # for node in [(move, candidate_node.best_move) for move, candidate_node in candidate_nodes.items()]:
     #         for move, candidate_node in candidate_nodes.items():
     #             candidate_best_move = candidate_node.best_move
     #             if best_eval == None \
@@ -100,11 +80,31 @@ class GameState:
     #                 or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
     #                     best_eval = candidate_best_move.evaluation
     #                     best_node = move
+    #         self._best_move = self.candidate_nodes[best_node]
     #         return self.candidate_nodes[best_node]
     #     if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
     #         return self # has no children or the game is over, so returns self
     #     else:
     #         return evaluate_children(self.candidate_nodes)
+
+    @property
+    def best_move(self):
+        def evaluate_children(candidate_nodes):
+            best_eval = None
+            best_node = None
+            # for node in [(move, candidate_node.best_move) for move, candidate_node in candidate_nodes.items()]:
+            for move, candidate_node in candidate_nodes.items():
+                candidate_best_move = candidate_node.best_move
+                if best_eval == None \
+                    or self.active_player == 0 and candidate_best_move.evaluation > best_eval \
+                    or self.active_player == 1 and candidate_best_move.evaluation < best_eval:
+                        best_eval = candidate_best_move.evaluation
+                        best_node = move
+            return self.candidate_nodes[best_node]
+        if not self.candidate_nodes or self.status in ['attacker_wins', 'defender_wins']:
+            return self # has no children or the game is over, so returns self
+        else:
+            return evaluate_children(self.candidate_nodes)
 
     @staticmethod
     def piece_constructor(input_char):
