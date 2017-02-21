@@ -3,7 +3,7 @@ import curses
 
 class GameDisplay():
 
-    def __init__(self, window, game_state, computer_opponent=True):
+    def __init__(self, window, game_state, computer_opponent=1):
         self.window = window
         self.computer_opponent = computer_opponent
         self.game_state = game_state
@@ -14,6 +14,8 @@ class GameDisplay():
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
         self.window.move(*self.cursor_loc)
         self.window.cursyncup()
+        if self.computer_opponent == self.game_state.active_player:
+            self.handle_computer_move()
 
     def handle_input(self, c):
         if c == curses.KEY_UP:
@@ -26,6 +28,13 @@ class GameDisplay():
             self.cursor_loc = (self.cursor_loc[0], max(0, self.cursor_loc[1] - 1))
         elif c == ord(' '):
             self.select_square(self.cursor_loc)
+
+    def handle_computer_move(self):
+        if self.computer_opponent == self.game_state.active_player:
+            self.print_board()
+            curses.napms(1500)
+            self.game_state.set_child_node(self.game_state.best_move)
+            self.game_state = self.game_state.child_node
 
     def select_square(self, square):
         try:
@@ -40,11 +49,7 @@ class GameDisplay():
             self.game_state.set_child_node((self.active_square, square))
             self.game_state = self.game_state.child_node
             self.active_square = None
-            if self.computer_opponent:
-                self.print_board()
-                curses.napms(1500)
-                self.game_state.set_child_node(self.game_state.best_move)
-                self.game_state = self.game_state.child_node
+            self.handle_computer_move()
         else:
             self.active_square = None
 

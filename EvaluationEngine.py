@@ -16,14 +16,14 @@ def evaluate_position(board, row_size=9):
         elif board[i]["owner"] == 1:
             neighbors = []
             if i % row_size != 0:
-                neighbors.append([i - row_size - 1, i - 1, i + row_size - 1])
+                neighbors.extend([i - row_size - 1, i - 1, i + row_size - 1])
             if (i + 1) % row_size != 0:
-                neighbors.append([i - row_size + 1, i + 1, i + row_size + 1])
-            neighbors.append([i - row_size, i + row_size])
-            neighbor_count = len(filter(lambda n: n >= 0 and n < row_size, neighbors))
+                neighbors.extend([i - row_size + 1, i + 1, i + row_size + 1])
+            neighbors.extend([i - row_size, i + row_size])
+            neighbor_count = len(list(filter(lambda n: n >= 0 and n < row_size, neighbors)))
             if neighbor_count == 2:
                 positional_evaluation += 1/16
-            if neighbor_count == 0 or neighbor_count >= 4
+            if neighbor_count == 0 or neighbor_count >= 4:
                 positional_evaluation += -1/16
 
 
